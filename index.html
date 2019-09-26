@@ -1,0 +1,58 @@
+<html onmousemove="m(event)">
+	<head>
+	<script>
+
+        var doing=10; // this is for when the mouse is coming to a stop
+        var x = 20;
+        var y = 20;
+        var bx;
+        window.onload = function(){
+            bx = document.getElementById("box");
+            bx.style.left=30;
+            bx.style.top=30;
+            tik();
+        }
+
+        function tik(){
+            doing-=1;
+            if(doing==0){
+                move();
+            }
+            setTimeout(tik, 50);
+        }
+        function move(){
+              bx = document.getElementById("box");
+
+              hereXstr = bx.style.left;//.slice(0,bx.style.left.length-2);
+              hereXstr.replace("px","");
+              hereX = parseInt(hereXstr);
+
+              hereYstr = bx.style.top;
+              hereYstr.replace("px","");
+              hereY = parseInt(hereYstr);
+
+              thereX = x;
+              thereY = y;
+              console.log(hereX,thereX,hereY,thereY);
+
+              newX = (4*hereX+thereX)/5;
+              newY = (4*hereY+thereY)/5;
+	      	  bx.style.left = newX;
+              console.log(bx.style.left)
+	      	  bx.style.top = newY;
+
+              if(Math.abs(thereX-hereX)>7 || Math.abs(thereY-hereY)>7)
+                  doing = 1;
+                  //setTimeout(function(){move(x,y);}, 100);
+        }
+		function m(e){
+            x = e.pageX;
+            y = e.pageY;
+            doing = 10;
+		}
+	</script>
+	</head>
+	<body>
+		<div id="box" style="background-color:#990000; width:20px; height:20px; position:absolute;" />
+	</body>
+</html>
