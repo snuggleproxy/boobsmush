@@ -1,0 +1,7 @@
+
+Next things next:
+ - should I just use someone elses game engine? Meh.....?
+ - system of comparing cursor pos to objects
+ - state transition from touching to not touching and back
+    - object that holds info on where initial touch was for
+       transformation and release checks.
