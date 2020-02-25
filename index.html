@@ -2,13 +2,33 @@
 	<head>
 	<script>
 
-        var bx;
-        window.onload = function(){
-            bx = document.getElementById("box");
-            bx.style.left=200;
-            bx.style.top=100;
+        window.onload=function(){
+            // fuck the canvas right up fukkkkkkk uuuuuuuuu
+            var w = window.innerWidth;
+            var h = window.innerHeight;
+            var canvas = document.getElementById('canvas');
+
+            fuck_you=20;
+            canvas.width=window.innerWidth-fuck_you;
+            canvas.height=window.innerHeight-fuck_you;
+            window.ctx = canvas.getContext('2d');
+            ctx.beginPath();
+            ctx.rect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'red';
+            ctx.fill();
+            drwrlineee(51,51,300,80);
+            window.lastx=0;
+            window.lasty=0;
+        }
+        function drwrlineee(x1,y1,x2,y2){
+            ctx.beginPath();
+            ctx.moveTo(x1,y1);
+            ctx.lineTo(x2,y2);
+            ctx.stroke();
         }
 
+
+        // this is neat... delete it!!!!!
         function move(){
               bx = document.getElementById("box");
 
@@ -37,17 +57,13 @@
 		function m(e){
             x = e.pageX;
             y = e.pageY;
-            if (x>190 && x<260 && y>100 && y<200){
-                bx.style.width=55;
-                bx.style.left=205;
-            }else{
-                bx.style.width=60;
-                bx.style.left=200;
-            }
+            drwrlineee(lastx,lasty,x,y);
+            lastx = x;
+            lasty = y;
 		}
 	</script>
 	</head>
 	<body>
-		<div id="box" style="background-color:#990000; transform: rotate(20deg); width:60px; height:90px; position:absolute;" />
+      <canvas id="canvas"></canvas>
 	</body>
 </html>
