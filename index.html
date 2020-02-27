@@ -2,6 +2,18 @@
 	<head>
 	<script>
 
+        is_drawing = false;
+        window.onmousedown=function(e){
+            is_drawing = true;
+            firstx = x;
+            firsty = y;
+            lastx = x;
+            lasty = y;
+        }
+        window.onmouseup=function(e){
+            is_drawing = false;
+            drwrlineee(lastx,lasty,firstx,firsty);
+        }
         window.onload=function(){
             // fuck the canvas right up fukkkkkkk uuuuuuuuu
             var w = window.innerWidth;
@@ -55,11 +67,13 @@
                   //setTimeout(function(){move(x,y);}, 100);
         }
 		function m(e){
-            x = e.pageX;
-            y = e.pageY;
-            drwrlineee(lastx,lasty,x,y);
-            lastx = x;
-            lasty = y;
+            x = e.pageX - 10;
+            y = e.pageY - 10;
+            if(is_drawing && Math.abs(lastx-x)+Math.abs(lasty-y) > 10){
+                drwrlineee(lastx,lasty,x,y);
+                lastx = x;
+                lasty = y;
+            }
 		}
 	</script>
 	</head>
