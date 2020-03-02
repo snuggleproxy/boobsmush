@@ -2,23 +2,49 @@
 	<head>
 	<script>
 
-        is_drawing = false;
+        mroovin = true;
+        drawing = false
+        pencil_down = false;
         window.onmousedown=function(e){
-            is_drawing = true;
-            firstx = x;
-            firsty = y;
-            lastx = x;
-            lasty = y;
+            if(mroovin){
+                testob.style.left = x;
+                testob.style.top = y;
+            }
+            if(drawing){
+                pencil_down = true;
+                firstx = x;
+                firsty = y;
+                lastx = x;
+                lasty = y;
+            }
         }
         window.onmouseup=function(e){
-            is_drawing = false;
-            drwrlineee(lastx,lasty,firstx,firsty);
+            if(drawing){
+                pencil_down = false;
+                drwrlineee(lastx,lasty,firstx,firsty);
+            }
         }
         window.onload=function(){
             // fuck the canvas right up fukkkkkkk uuuuuuuuu
             var w = window.innerWidth;
             var h = window.innerHeight;
             var canvas = document.getElementById('canvas');
+
+
+            window.testob = document.createElement("canvas");   // Create a <button> element
+            testob.style.position = 'absolute';
+            testob.style.left = '10px';
+            testob.style.top = '10px';
+            document.body.appendChild(testob);    
+            testobctx=testob.getContext('2d');
+            testobctx.beginPath();
+            testobctx.rect(0, 0, canvas.width, canvas.height);
+            //testobctx.fillStyle = 'yellow';
+            //testobctx.fill();
+            testobctx.beginPath();
+            testobctx.moveTo(0,20);
+            testobctx.lineTo(50,20);
+            testobctx.stroke();
 
             fuck_you=20;
             canvas.width=window.innerWidth-fuck_you;
@@ -69,7 +95,7 @@
 		function m(e){
             x = e.pageX - 10;
             y = e.pageY - 10;
-            if(is_drawing && Math.abs(lastx-x)+Math.abs(lasty-y) > 10){
+            if(pencil_down && Math.abs(lastx-x)+Math.abs(lasty-y) > 10){
                 drwrlineee(lastx,lasty,x,y);
                 lastx = x;
                 lasty = y;
