@@ -2,13 +2,14 @@
 	<head>
 	<script>
 
-        mroovin = true;
-        drawing = false
+        mroovin = false;
+        mroov_down = false;
+        drawing = true
         pencil_down = false;
         window.onmousedown=function(e){
             if(mroovin){
-                testob.style.left = x;
-                testob.style.top = y;
+                mroov_down = true;
+                mroov();
             }
             if(drawing){
                 pencil_down = true;
@@ -19,34 +20,54 @@
             }
         }
         window.onmouseup=function(e){
+            if(mroovin){
+                mroov_down = false;
+            }
             if(drawing){
                 pencil_down = false;
-                drwrlineee(lastx,lasty,firstx,firsty);
+                //drwrlineee(canvas,lastx,lasty,firstx,firsty);//TODO:make this get the obj it needs or not, cause just pencil tool.
             }
         }
+        ////////////////
+        // init function
+        ////////////////
         window.onload=function(){
             // fuck the canvas right up fukkkkkkk uuuuuuuuu
             var w = window.innerWidth;
             var h = window.innerHeight;
             var canvas = document.getElementById('canvas');
+            canvas.style.position = 'absolute';
+            canvas.style.left = '0px';
+            canvas.style.top = '0px';
 
+            document.body.style.cursor = "crosshair"
+
+            window.menu = document.createElement("img");
+            menu.style.position = 'absolute';
+            menu.src = "toolbar2.png";
+            menu.onmousedown=function(e){e.preventDefault()};
+            document.body.appendChild(menu);
 
             window.testob = document.createElement("canvas");   // Create a <button> element
             testob.style.position = 'absolute';
-            testob.style.left = '10px';
-            testob.style.top = '10px';
+            testob.style.left = '100px';
+            testob.style.top = '100px';
+            testob.style.border='dashed';
             document.body.appendChild(testob);    
             testobctx=testob.getContext('2d');
             testobctx.beginPath();
             testobctx.rect(0, 0, canvas.width, canvas.height);
             //testobctx.fillStyle = 'yellow';
             //testobctx.fill();
-            testobctx.beginPath();
-            testobctx.moveTo(0,20);
-            testobctx.lineTo(50,20);
-            testobctx.stroke();
+            for(i=0;i<7*40;i++){
+                testobctx.beginPath();
+                testobctx.moveTo(0,40*i);
+                testobctx.lineTo(40,40*i);
+                testobctx.stroke();
+            }
 
-            fuck_you=20;
+
+            fuck_you=10;
             canvas.width=window.innerWidth-fuck_you;
             canvas.height=window.innerHeight-fuck_you;
             window.ctx = canvas.getContext('2d');
@@ -54,15 +75,17 @@
             ctx.rect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = 'red';
             ctx.fill();
-            drwrlineee(51,51,300,80);
+            drwrlineee(canvas,51,51,300,80);
             window.lastx=0;
             window.lasty=0;
+            window.ctx = testobctx;
         }
-        function drwrlineee(x1,y1,x2,y2){
-            ctx.beginPath();
-            ctx.moveTo(x1,y1);
-            ctx.lineTo(x2,y2);
-            ctx.stroke();
+        function drwrlineee(ob,x1,y1,x2,y2){
+            ctxxx = ob.getContext('2d');
+            ctxxx.beginPath();
+            ctxxx.moveTo(x1-ob.style.left.slice(0,-2),y1-ob.style.top.slice(0,-2));
+            ctxxx.lineTo(x2-ob.style.left.slice(0,-2),y2-ob.style.top.slice(0,-2));
+            ctxxx.stroke();
         }
 
 
@@ -80,26 +103,31 @@
 
               thereX = x;
               thereY = y;
-              console.log(hereX,thereX,hereY,thereY);
 
               newX = (4*hereX+thereX)/5;
               newY = (4*hereY+thereY)/5;
 	      	  bx.style.left = newX;
-              console.log(bx.style.left)
 	      	  bx.style.top = newY;
 
               if(Math.abs(thereX-hereX)>7 || Math.abs(thereY-hereY)>7)
                   doing = 1;
                   //setTimeout(function(){move(x,y);}, 100);
         }
+        function mroov(){
+                testob.style.left = x-testob.width/2;
+                testob.style.top = y-testob.height/2;
+        }
 		function m(e){
-            x = e.pageX - 10;
-            y = e.pageY - 10;
-            if(pencil_down && Math.abs(lastx-x)+Math.abs(lasty-y) > 10){
-                drwrlineee(lastx,lasty,x,y);
-                lastx = x;
-                lasty = y;
+            x = e.pageX;
+            y = e.pageY;
+            if(mroov_down){
+                mroov();
             }
+            if(pencil_down){// && Math.abs(lastx-x)+Math.abs(lasty-y) > 4){
+                drwrlineee(testob,lastx,lasty,x,y);
+            }
+            lastx = x;
+            lasty = y;
 		}
 	</script>
 	</head>
