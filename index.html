@@ -2,13 +2,34 @@
 	<head>
 	<script>
 
-        function Ob(){
-            ob = document.createElement("canvas");   // Create a <button> element
+        function Ob(mom){
+            ob = document.createElement("canvas");
             ob.style.position = 'absolute';
-            ob.style.left = x;
-            ob.style.top = y;
+            ob.x = x;
+            ob.y = y;
+            ob.rejig = function(){
+                this.style.left = this.x;
+                this.style.top = this.y;
+            };
+            ob.rejig();
             ob.style.border='dashed';
             ob.ctx=ob.getContext('2d');
+            if(mom){// there should only be one object without a mom.
+                ob.mom = mom;
+                mom.babbs.push(ob);
+            }
+            ob.zones = [];
+            ob.trigs = [];
+            ob.babbs = [];
+            ob.move = function(xchange,ychange){
+                this.x += xchange;
+                this.y += ychange;
+                this.rejig();
+                for (i=0;i<this.babbs.length;i++){
+                    this.babbs[i].move(xchange,ychange);
+                }
+            };
+
             //ob.beginPath();
             //ob.rect(0, 0, canvas.width, canvas.height);
             //ob.fillStyle = 'yellow';
@@ -37,10 +58,7 @@
                 },
                 function(e){
                     // move by dx & dy
-                    obx = parseInt(selected_ob.style.left);
-                    oby = parseInt(selected_ob.style.top);
-                    selected_ob.style.left = obx + dx;
-                    selected_ob.style.top = oby + dy;
+                    selected_ob.move(dx,dy);
                 },],
             'draw':[
                 function(e){
@@ -50,7 +68,7 @@
                 },],
             'new':[
                 function(e){
-                    newob = Ob();
+                    newob = Ob(selected_ob);
                 },
                 function(e){
                 },],
@@ -129,6 +147,11 @@
 
             testob = Ob();
             window.ctx = testob.ctx;
+
+            window.svglayer = document.getElementById("svglayer");
+            window.menuhl = document.getElementById("menuhl");
+            menuhl.x.baseVal.value=5;
+            menuhl.y.baseVal.value=5;
         }
         function drwrlineee(ob,x1,y1,x2,y2){
             ctxxx = ob.getContext('2d');
@@ -175,6 +198,9 @@
 	</script>
 	</head>
 	<body>
-      <canvas id="canvas"></canvas>
+        <canvas id="canvas"></canvas>
+        <svg id="svglayer" width="400" height="1000" style="position:absolute">
+          <rect id="menuhl" x=100 y=100 width="38" height="38" style="fill:rgb(2550,100,100);stroke-width:4;stroke:rgb(0,0,0)" />
+        </svg>
 	</body>
 </html>
