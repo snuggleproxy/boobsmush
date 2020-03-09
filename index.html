@@ -2,11 +2,37 @@
 	<head>
 	<script>
 
-        mroovin = false;
-        mroov_down = false;
-        drawing = true
+        // uhh, shouldn't some of this be in init? do we even need init? How does loading werk?
         pencil_down = false;
+        // it goes [0] is onclick and [1] is on move while clickd!!!
+            // no I don't know if this makes sense!
+        window.input_fun={
+            'movin_menu':[
+                function(e){
+                },
+                function(e){
+                },],
+            'move':[
+                function(e){
+                },
+                function(e){
+                    testob.style.left = x-testob.width/2;
+                    testob.style.top = y-testob.height/2;
+                },],
+            'draw':[
+                function(e){
+                },
+                function(e){
+                    drwrlineee(testob,lastx,lasty,x,y);
+                },],
+            'new':[
+                function(e){
+                },
+                function(e){
+                },],
+        }
         window.onmousedown=function(e){
+            pencil_down=true;
             toolz = ['move','draw','new'];
             menux=parseInt(menu.style.left);
             menuy=parseInt(menu.style.top);
@@ -23,33 +49,31 @@
                     }
                 }
                 console.log(input_mode);
-            }
-            //TODO: convert to function map called by input_mode
-            if(mroovin){
-                mroov_down = true;
-                mroov();
-            }
-            if(drawing){
-                pencil_down = true;
-                firstx = x;
-                firsty = y;
-                lastx = x;
-                lasty = y;
+            }else{
+                input_fun[input_mode](e);
+                //TODO: convert to function map called by input_mode
+                if(mroovin){
+                    mroov_down = true;
+                    mroov();
+                }
+                if(drawing){
+                    pencil_down = true;
+                    firstx = x;
+                    firsty = y;
+                    lastx = x;
+                    lasty = y;
+                }
             }
         }
         window.onmouseup=function(e){
-            if(mroovin){
-                mroov_down = false;
-            }
-            if(drawing){
-                pencil_down = false;
+            pencil_down = false;
                 //drwrlineee(canvas,lastx,lasty,firstx,firsty);//TODO:make this get the obj it needs or not, cause just pencil tool.
-            }
         }
         ////////////////
         // init function
         ////////////////
         window.onload=function(){
+
             // fuck the canvas right up fukkkkkkk uuuuuuuuu
             var w = window.innerWidth;
             var h = window.innerHeight;
@@ -58,6 +82,7 @@
             canvas.style.left = '0px';
             canvas.style.top = '0px';
 
+            // custom cursorz r coool!
             document.body.style.cursor = "crosshair"
 
             window.menu = document.createElement("img");
@@ -80,13 +105,7 @@
             testobctx.rect(0, 0, canvas.width, canvas.height);
             //testobctx.fillStyle = 'yellow';
             //testobctx.fill();
-            for(i=0;i<7*40;i++){
-                testobctx.beginPath();
-                testobctx.moveTo(0,40*i);
-                testobctx.lineTo(40,40*i);
-                testobctx.stroke();
-            }
-
+            window.selected_ob = testob;
 
             fuck_you=10;
             canvas.width=window.innerWidth-fuck_you;
@@ -97,6 +116,10 @@
             ctx.fillStyle = 'red';
             ctx.fill();
             drwrlineee(canvas,51,51,300,80);
+            window.x=0;
+            window.y=0;
+            window.dx=0;
+            window.dy=0;
             window.lastx=0;
             window.lasty=0;
             window.ctx = testobctx;
@@ -108,8 +131,6 @@
             ctxxx.lineTo(x2-ob.style.left.slice(0,-2),y2-ob.style.top.slice(0,-2));
             ctxxx.stroke();
         }
-
-
         // this is neat... delete it!!!!!
         function move(){
               bx = document.getElementById("box");
@@ -134,19 +155,13 @@
                   doing = 1;
                   //setTimeout(function(){move(x,y);}, 100);
         }
-        function mroov(){
-                testob.style.left = x-testob.width/2;
-                testob.style.top = y-testob.height/2;
-        }
 		function m(e){
             x = e.pageX;
             y = e.pageY;
-            //in toolbox
-            if(mroov_down){
-                mroov();
-            }
-            if(pencil_down){// && Math.abs(lastx-x)+Math.abs(lasty-y) > 4){
-                drwrlineee(testob,lastx,lasty,x,y);
+            dx = x-lastx;
+            dy = x-lasty;
+            if(pencil_down){
+                input_fun[input_mode][1](e);
             }
             lastx = x;
             lasty = y;
