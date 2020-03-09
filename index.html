@@ -16,12 +16,16 @@
                 },],
             'move':[
                 function(e){
-                    selected_ob.style.left = x-testob.width/2;
-                    selected_ob.style.top = y-testob.height/2;
+                    // move center to cursor
+                    //selected_ob.style.left = x-testob.width/2;
+                    //selected_ob.style.top = y-testob.height/2;
                 },
                 function(e){
-                    selected_ob.style.left = x-testob.width/2;
-                    selected_ob.style.top = y-testob.height/2;
+                    // move by dx & dy
+                    obx = parseInt(selected_ob.style.left);
+                    oby = parseInt(selected_ob.style.top);
+                    selected_ob.style.left = obx + dx;
+                    selected_ob.style.top = oby + dy;
                 },],
             'draw':[
                 function(e){
@@ -153,6 +157,8 @@
                   //setTimeout(function(){move(x,y);}, 100);
         }
 		function m(e){
+            lastx = x;
+            lasty = y;
             x = e.pageX;
             y = e.pageY;
             dx = x-lastx;
@@ -160,8 +166,6 @@
             if(pencil_down){
                 input_fun[input_mode][1](e);
             }
-            lastx = x;
-            lasty = y;
 		}
 	</script>
 	</head>
