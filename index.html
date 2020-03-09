@@ -11,13 +11,17 @@
                 function(e){
                 },
                 function(e){
+                    menu.style.left=parseInt(menu.style.left)+dx;
+                    menu.style.top=parseInt(menu.style.top)+dy;
                 },],
             'move':[
                 function(e){
+                    selected_ob.style.left = x-testob.width/2;
+                    selected_ob.style.top = y-testob.height/2;
                 },
                 function(e){
-                    testob.style.left = x-testob.width/2;
-                    testob.style.top = y-testob.height/2;
+                    selected_ob.style.left = x-testob.width/2;
+                    selected_ob.style.top = y-testob.height/2;
                 },],
             'draw':[
                 function(e){
@@ -32,13 +36,14 @@
                 },],
         }
         window.onmousedown=function(e){
-            pencil_down=true;
             toolz = ['move','draw','new'];
             menux=parseInt(menu.style.left);
             menuy=parseInt(menu.style.top);
             if(x>menux && x<menux+menu.width){
                 if(y>menuy){
                     if(y< menuy+10){
+                        pencil_down=true;
+                        last_input_mode = input_mode;
                         input_mode = 'movin_menu';
                     }else{
                         for(i=toolz.length-1;i>=0;i--){
@@ -50,23 +55,15 @@
                 }
                 console.log(input_mode);
             }else{
-                input_fun[input_mode](e);
-                //TODO: convert to function map called by input_mode
-                if(mroovin){
-                    mroov_down = true;
-                    mroov();
-                }
-                if(drawing){
-                    pencil_down = true;
-                    firstx = x;
-                    firsty = y;
-                    lastx = x;
-                    lasty = y;
-                }
+                pencil_down=true;
+                input_fun[input_mode][0](e);
             }
         }
         window.onmouseup=function(e){
             pencil_down = false;
+            if(input_mode=='movin_menu'){
+                input_mode=last_input_mode;
+            }
                 //drwrlineee(canvas,lastx,lasty,firstx,firsty);//TODO:make this get the obj it needs or not, cause just pencil tool.
         }
         ////////////////
@@ -159,7 +156,7 @@
             x = e.pageX;
             y = e.pageY;
             dx = x-lastx;
-            dy = x-lasty;
+            dy = y-lasty;
             if(pencil_down){
                 input_fun[input_mode][1](e);
             }
