@@ -7,6 +7,24 @@
         drawing = true
         pencil_down = false;
         window.onmousedown=function(e){
+            toolz = ['move','draw','new'];
+            menux=parseInt(menu.style.left);
+            menuy=parseInt(menu.style.top);
+            if(x>menux && x<menux+menu.width){
+                if(y>menuy){
+                    if(y< menuy+10){
+                        input_mode = 'movin_menu';
+                    }else{
+                        for(i=toolz.length-1;i>=0;i--){
+                            if(y<menuy+(i+1)*40){ //TODO: probz don't hardcode this
+                                input_mode = toolz[i]
+                            }
+                        }
+                    }
+                }
+                console.log(input_mode);
+            }
+            //TODO: convert to function map called by input_mode
             if(mroovin){
                 mroov_down = true;
                 mroov();
@@ -44,9 +62,12 @@
 
             window.menu = document.createElement("img");
             menu.style.position = 'absolute';
+            menu.style.left=10;
+            menu.style.top =10;
             menu.src = "toolbar2.png";
             menu.onmousedown=function(e){e.preventDefault()};
             document.body.appendChild(menu);
+            window.input_mode = 'move';
 
             window.testob = document.createElement("canvas");   // Create a <button> element
             testob.style.position = 'absolute';
@@ -120,6 +141,7 @@
 		function m(e){
             x = e.pageX;
             y = e.pageY;
+            //in toolbox
             if(mroov_down){
                 mroov();
             }
