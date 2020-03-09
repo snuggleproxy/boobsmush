@@ -2,6 +2,21 @@
 	<head>
 	<script>
 
+        function Ob(){
+            ob = document.createElement("canvas");   // Create a <button> element
+            ob.style.position = 'absolute';
+            ob.style.left = x;
+            ob.style.top = y;
+            ob.style.border='dashed';
+            ob.ctx=ob.getContext('2d');
+            //ob.beginPath();
+            //ob.rect(0, 0, canvas.width, canvas.height);
+            //ob.fillStyle = 'yellow';
+            //ob.fill();
+            window.selected_ob = ob;
+            document.body.appendChild(ob);    
+            return(ob)
+        }
         // uhh, shouldn't some of this be in init? do we even need init? How does loading werk?
         pencil_down = false;
         // it goes [0] is onclick and [1] is on move while clickd!!!
@@ -35,6 +50,7 @@
                 },],
             'new':[
                 function(e){
+                    newob = Ob();
                 },
                 function(e){
                 },],
@@ -95,19 +111,6 @@
             document.body.appendChild(menu);
             window.input_mode = 'move';
 
-            window.testob = document.createElement("canvas");   // Create a <button> element
-            testob.style.position = 'absolute';
-            testob.style.left = '100px';
-            testob.style.top = '100px';
-            testob.style.border='dashed';
-            document.body.appendChild(testob);    
-            testobctx=testob.getContext('2d');
-            testobctx.beginPath();
-            testobctx.rect(0, 0, canvas.width, canvas.height);
-            //testobctx.fillStyle = 'yellow';
-            //testobctx.fill();
-            window.selected_ob = testob;
-
             fuck_you=10;
             canvas.width=window.innerWidth-fuck_you;
             canvas.height=window.innerHeight-fuck_you;
@@ -117,13 +120,15 @@
             ctx.fillStyle = 'red';
             ctx.fill();
             drwrlineee(canvas,51,51,300,80);
-            window.x=0;
-            window.y=0;
+            window.x=100;
+            window.y=100;
             window.dx=0;
             window.dy=0;
             window.lastx=0;
             window.lasty=0;
-            window.ctx = testobctx;
+
+            testob = Ob();
+            window.ctx = testob.ctx;
         }
         function drwrlineee(ob,x1,y1,x2,y2){
             ctxxx = ob.getContext('2d');
