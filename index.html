@@ -34,7 +34,10 @@
             //ob.rect(0, 0, canvas.width, canvas.height);
             //ob.fillStyle = 'yellow';
             //ob.fill();
-            window.selected_ob = ob;
+            if(selected_ob.style){
+                selected_ob.style.borderWidth=1;
+            }
+            selected_ob = ob;
             document.body.appendChild(ob);    
             return(ob)
         }
@@ -59,6 +62,10 @@
                 function(e){
                     // move by dx & dy
                     selected_ob.move(dx,dy);
+                    //liner.x1.baseVal.value= 30;
+                    //liner.y1.baseVal.value= 30;
+                    liner.x2.baseVal.value = selected_ob.x;
+                    liner.y2.baseVal.value = selected_ob.y;
                 },],
             'draw':[
                 function(e){
@@ -146,13 +153,29 @@
             window.lastx=0;
             window.lasty=0;
 
+            window.selected_ob = 'boobs';
             testob = Ob();
             window.ctx = testob.ctx;
 
             window.svglayer = document.getElementById("svglayer");
+            svglayer.width.baseVal.value=window.innerWidth - fuck_you;
+            svglayer.height.baseVal.value=window.innerHeight - fuck_you;
             window.menuhl = document.getElementById("menuhl");
             menuhl.x.baseVal.value=5;
             menuhl.y.baseVal.value=5;
+            window.liner = document.getElementById("liner");
+//30
+//svglayer.width
+//SVGAnimatedLength { baseVal: SVGLength, animVal: SVGLength }
+//
+//svglayer.width.baseVal.value
+//400
+//svglayer.width.baseVal.value=100
+//100
+//svglayer.width.baseVal.value=800
+//800
+            //window.liner = document.createElement("line");
+            //svglayer.appendChild(liner);
         }
         function drwrlineee(ob,x1,y1,x2,y2){
             ctxxx = ob.getContext('2d');
@@ -202,6 +225,7 @@
         <canvas id="canvas"></canvas>
         <svg id="svglayer" width="400" height="1000" style="position:absolute">
           <rect id="menuhl" x=100 y=100 width="38" height="38" style="fill:rgb(2550,100,100);stroke-width:4;stroke:rgb(0,0,0)" />
+            <line id="liner" x1="0" y1="0" x2="200" y2="200" style="stroke:rgb(255,255,255);stroke-width:2" />
         </svg>
 	</body>
 </html>
