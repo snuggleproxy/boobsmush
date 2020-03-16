@@ -2,11 +2,21 @@
 	<head>
 	<script>
 
+        window.freshest_id = 0;
+        function get_childz(ob){
+                ob.x += xchange;
+                ob.y += ychange;
+                ob.rejig();
+                for (ii=0;ii<ob.babbs.length;ii++){
+                    move_ob(ob.babbs[ii],xchange,ychange);
+                }
+        }
         function Ob(mom){
             ob = document.createElement("canvas");
             ob.style.position = 'absolute';
             ob.x = x;
             ob.y = y;
+            ob.id=freshest_id++;
             ob.rejig = function(){
                 this.style.left = this.x;
                 this.style.top = this.y;
@@ -25,8 +35,8 @@
                 this.x += xchange;
                 this.y += ychange;
                 this.rejig();
-                for (i=0;i<this.babbs.length;i++){
-                    this.babbs[i].move(xchange,ychange);
+                for (let ii=0;ii<this.babbs.length;ii++){
+                    this.babbs[ii].move(xchange,ychange);
                 }
             };
 
@@ -34,25 +44,32 @@
             //ob.rect(0, 0, canvas.width, canvas.height);
             //ob.fillStyle = 'yellow';
             //ob.fill();
-            if(selected_ob.style){
-                selected_ob.style.borderWidth=1;
+            ob.select = function(){
+                if(selected_ob.style){
+                    selected_ob.style.borderWidth=1;
+                }
+                selected_ob = this;
+                selected_ob.style.borderWidth=3;
             }
-            selected_ob = ob;
+            ob.select();
             document.body.appendChild(ob);    
+            all_obs.push(ob);
             return(ob)
         }
         // uhh, shouldn't some of this be in init? do we even need init? How does loading werk?
         pencil_down = false;
         // it goes [0] is onclick and [1] is on move while clickd!!!
+        // Oh, don't forget [2] is just moving! Also I'm dum and so iz code liek this!
             // no I don't know if this makes sense!
         window.input_fun={
             'movin_menu':[
-                function(e){
-                },
+                function(e){},
                 function(e){
                     menu.style.left=parseInt(menu.style.left)+dx;
                     menu.style.top=parseInt(menu.style.top)+dy;
-                },],
+                },
+                function(e){},
+            ],
             'move':[
                 function(e){
                     // move center to cursor
@@ -66,19 +83,45 @@
                     //liner.y1.baseVal.value= 30;
                     liner.x2.baseVal.value = selected_ob.x;
                     liner.y2.baseVal.value = selected_ob.y;
-                },],
+                },
+                function(e){
+                    let min = 190099;
+                    let closest = 0;
+                    // this is bad I guess... too much proc
+                    for(ii=0;ii<all_obs.length;ii++){
+                        let ib = all_obs[ii];
+                        let ic = Math.abs(x-parseInt(ib.style.left))
+                                +Math.abs(y-parseInt(ib.style.top));
+                        if( ic<min ){
+                            min = ic;
+                            closest = ii;
+                        }
+                    }
+                    all_obs[closest].select();
+                            // wrong algorithm!!! thats for inside of!!!
+                            //x>ib.left &&
+                            //x<ib.left+ib.width &&
+                            //y>ib.top &&
+                            //y<ib.top+ib.height
+
+                },
+            ],
             'draw':[
                 function(e){
                 },
                 function(e){
                     drwrlineee(selected_ob,lastx,lasty,x,y);
-                },],
+                },
+                function(e){},
+            ],
             'new':[
                 function(e){
                     newob = Ob(selected_ob);
                 },
                 function(e){
-                },],
+                },
+                function(e){},
+            ],
         }
         window.onmousedown=function(e){
             toolz = ['move','draw','new'];
@@ -117,9 +160,10 @@
         ////////////////
         window.onload=function(){
 
-            // fuck the canvas right up fukkkkkkk uuuuuuuuu
+            window.all_obs = [];
             var w = window.innerWidth;
             var h = window.innerHeight;
+            // fuck the canvas right up fukkkkkkk uuuuuuuuu
             var canvas = document.getElementById('canvas');
             canvas.style.position = 'absolute';
             canvas.style.left = '0px';
@@ -164,6 +208,8 @@
             menuhl.x.baseVal.value=5;
             menuhl.y.baseVal.value=5;
             window.liner = document.getElementById("liner");
+            liner.x1.baseVal.value= 80;
+            liner.y1.baseVal.value= 80;
 //30
 //svglayer.width
 //SVGAnimatedLength { baseVal: SVGLength, animVal: SVGLength }
@@ -209,16 +255,26 @@
                   //setTimeout(function(){move(x,y);}, 100);
         }
 		function m(e){
-            lastx = x;
-            lasty = y;
-            x = e.pageX;
-            y = e.pageY;
-            dx = x-lastx;
-            dy = y-lasty;
-            if(pencil_down){
-                input_fun[input_mode][1](e);
+            if(goobable){
+                goobable = false;
+                lastx = x;
+                lasty = y;
+                x = e.pageX;
+                y = e.pageY;
+                dx = x-lastx;
+                dy = y-lasty;
+                if(pencil_down){
+                    input_fun[input_mode][1](e);
+                }else{
+                    input_fun[input_mode][2](e);
+                }
             }
 		}
+        window.goobable = false;
+        function goob(){
+            goobable = true;
+        }
+        window.setInterval(goob, 100);// doesn't even help with the multi babb issue.
 	</script>
 	</head>
 	<body>
