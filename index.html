@@ -63,6 +63,16 @@
                 selected_ob = this;
                 selected_ob.style.borderWidth=3;
             }
+            ob.hl = function(){
+                if(hl_ob!=selected_ob && hl_ob.style){
+                  hl_ob.style.borderWidth=1;
+                  console.log("some programmer round here is dum. dunno who.");
+                }
+                if(this.style && this!=selected_ob){
+                    this.style.borderWidth = 2;
+                }
+                hl_ob = this;
+            }
             ob.select();
             document.body.appendChild(ob);    
             all_obs.push(ob);
@@ -70,6 +80,22 @@
         }
         // uhh, shouldn't some of this be in init? do we even need init? How does loading werk?
         pencil_down = false;
+
+        window.get_closest = function(){
+                let min = 190099;
+                let closest = 0;
+                // this is bad I guess... too much proc
+                for(ii=0;ii<all_obs.length;ii++){
+                    let ib = all_obs[ii];
+                    let ic = Math.abs(x-parseInt(ib.style.left))
+                            +Math.abs(y-parseInt(ib.style.top));
+                    if( ic<min ){
+                        min = ic;
+                        closest = ii;
+                    }
+                }
+            return(closest);
+        }
         // it goes [0] is onclick and [1] is on move while clickd!!!
         // Oh, don't forget [2] is just moving! Also I'm dum and so iz code liek this!
             // no I don't know if this makes sense!
@@ -85,27 +111,16 @@
             'move':[
                 function(e){
                     // move center to cursor
-                    //selected_ob.style.left = x-testob.width/2;
-                    //selected_ob.style.top = y-testob.height/2;
+                    closest = get_closest();
+                    all_obs[closest].select();
                 },
                 function(e){
                     // move by dx & dy
                     selected_ob.move(dx,dy);
                 },
                 function(e){
-                    let min = 190099;
-                    let closest = 0;
-                    // this is bad I guess... too much proc
-                    for(ii=0;ii<all_obs.length;ii++){
-                        let ib = all_obs[ii];
-                        let ic = Math.abs(x-parseInt(ib.style.left))
-                                +Math.abs(y-parseInt(ib.style.top));
-                        if( ic<min ){
-                            min = ic;
-                            closest = ii;
-                        }
-                    }
-                    all_obs[closest].select();
+                    closest = get_closest();
+                    all_obs[closest].hl();
                             // wrong algorithm!!! thats for inside of!!!
                             //x>ib.left &&
                             //x<ib.left+ib.width &&
@@ -206,6 +221,7 @@
             window.lasty=0;
 
             window.selected_ob = 'boobs';
+            window.hl_ob = 'dickz';
             testob = Ob();
             window.ctx = testob.ctx;
 
