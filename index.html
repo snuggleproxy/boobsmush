@@ -16,6 +16,8 @@
             ob.style.position = 'absolute';
             ob.x = x;
             ob.y = y;
+            ob.width=10;
+            ob.height=10;
             ob.id=freshest_id++;
             ob.liner = liner.cloneNode();
             svglayer.appendChild(ob.liner);
@@ -142,6 +144,9 @@
                     newob = Ob(selected_ob);
                 },
                 function(e){
+                    // resize during creation
+                    selected_ob.width+=dx;
+                    selected_ob.height+=dy;
                 },
                 function(e){},
             ],
