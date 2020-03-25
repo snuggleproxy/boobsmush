@@ -11,6 +11,23 @@
                     move_ob(ob.babbs[ii],xchange,ychange);
                 }
         }
+        function Zone(ob){
+            zone = svglayer.cloneNode();// fuck how do you create svg
+            zone.xxx = x;
+            zone.yyy = y;
+            zone.rejig = function(){
+                this.style.left = this.xxx;
+                this.style.top = this.yyy;
+            }
+            zone.rejig();
+            ob.zones.push(zone);
+            document.body.appendChild(zone);
+            zone.move = function(xchange,ychange){
+                this.xxx = this.xxx+xchange;
+                this.yyy = this.yyy+ychange;
+                this.rejig();
+            }
+        }
         function Ob(mom){
             ob = document.createElement("canvas");
             ob.style.position = 'absolute';
@@ -51,6 +68,9 @@
                 this.rejig();
                 for (let ii=0;ii<this.babbs.length;ii++){
                     this.babbs[ii].move(xchange,ychange);
+                }
+                for (let ii=0;ii<this.zones.length;ii++){
+                    this.zones[ii].move(xchange,ychange);
                 }
             };
 
@@ -141,6 +161,7 @@
             ],
             'new':[
                 function(e){
+                    e.preventDefault();
                     newob = Ob(selected_ob);
                 },
                 function(e){
@@ -150,9 +171,21 @@
                 },
                 function(e){},
             ],
+            'zone':[
+                function(e){ //click
+                    e.preventDefault();
+                    Zone(selected_ob);
+                },
+                function(e){ //drag
+                    e.preventDefault();
+                    drwrzonee(selected_ob,lastx,lasty,x,y);
+                },
+                function(e){ //move
+                },
+            ],
         }
         window.onmousedown=function(e){
-            toolz = ['move','draw','new'];
+            toolz = ['move','draw','new','zone'];
             menux=parseInt(menu.style.left);
             menuy=parseInt(menu.style.top);
             if(x>menux && x<menux+menu.width){
@@ -175,13 +208,19 @@
                 pencil_down=true;
                 input_fun[input_mode][0](e);
             }
+            firstx = x;
+            firsty = y;
         }
         window.onmouseup=function(e){
-            pencil_down = false;
             if(input_mode=='movin_menu'){
                 input_mode=last_input_mode;
             }
+            else if(input_mode=='zone' && pencil_down){
+                //this is so bad
+                drwrzonee(selected_ob,x,y,firstx,firsty);//TODO:make this get the obj it needs or not, cause just pencil tool.
                 //drwrlineee(canvas,lastx,lasty,firstx,firsty);//TODO:make this get the obj it needs or not, cause just pencil tool.
+            }
+            pencil_down = false;
         }
         ////////////////
         // init function
@@ -222,6 +261,8 @@
             window.y=100;
             window.dx=0;
             window.dy=0;
+            window.firstx=0;
+            window.firsty=0;
             window.lastx=0;
             window.lasty=0;
 
@@ -250,6 +291,15 @@
             ctxxx.moveTo(x1-ob.style.left.slice(0,-2),y1-ob.style.top.slice(0,-2));
             ctxxx.lineTo(x2-ob.style.left.slice(0,-2),y2-ob.style.top.slice(0,-2));
             ctxxx.stroke();
+        }
+        function drwrzonee(ob,x1,y1,x2,y2){
+            foo = liner.cloneNode();
+            zoo = ob.zones[ob.zones.length-1];
+            zoo.appendChild(foo);
+            foo.x1.baseVal.value = x1 - zoo.xxx;
+            foo.y1.baseVal.value = y1 - zoo.yyy;
+            foo.x2.baseVal.value = x2 - zoo.xxx;
+            foo.y2.baseVal.value = y2 - zoo.yyy;
         }
         // this is neat... delete it!!!!!
         function move(){
