@@ -97,11 +97,23 @@
             //ob.fillStyle = 'yellow';
             //ob.fill();
             ob.select = function(){
+                //// old selected
                 if(selected_ob.style){
                     selected_ob.style.borderWidth=1;
                 }
+                // zones
+                if(selected_ob.zones)
+                    for (let ii=0;ii<selected_ob.zones.length;ii++){
+                        selected_ob.zones[ii].style.visibility="hidden";
+                }
+                //// new selected!!!
                 selected_ob = this;
                 selected_ob.style.borderWidth=3;
+                // zones
+                for (let ii=0;ii<selected_ob.zones.length;ii++){
+                        selected_ob.zones[ii].style.visibility="visible";
+                }
+
             }
             ob.hl = function(){
                 if(hl_ob!=selected_ob && hl_ob.style){
