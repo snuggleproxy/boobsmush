@@ -15,10 +15,28 @@
             zone = svglayer.cloneNode();// fuck how do you create svg
             zone.xxx = x;
             zone.yyy = y;
+            zone.hhh = 10;
+            zone.www = 10;
             zone.rejig = function(){
                 this.style.left = this.xxx;
                 this.style.top = this.yyy;
             }
+            // ahhhhhhhhhhhhhhhhhhhhhh
+            zone.movelines = function(xchange,ychange){
+                boobs = this.getElementsByTagName("line");
+                for (let ii=0;ii<boobs.length;ii++){
+                    boobs[ii].x1.baseVal.value += xchange;
+                    boobs[ii].x2.baseVal.value += xchange;
+                    boobs[ii].y1.baseVal.value += ychange;
+                    boobs[ii].y2.baseVal.value += ychange;
+                }
+                
+            }
+            zone.resize = function(){
+                this.style.height = this.hhh;
+                this.style.width = this.www;
+            }
+            zone.resize();
             zone.rejig();
             ob.zones.push(zone);
             document.body.appendChild(zone);
@@ -258,7 +276,7 @@
             ctx.fill();
             //drwrlineee(canvas,51,51,300,80);
             window.x=100;
-            window.y=100;
+            window.y=30;
             window.dx=0;
             window.dy=0;
             window.firstx=0;
@@ -300,6 +318,28 @@
             foo.y1.baseVal.value = y1 - zoo.yyy;
             foo.x2.baseVal.value = x2 - zoo.xxx;
             foo.y2.baseVal.value = y2 - zoo.yyy;
+            // resize if drawing outside
+            if(x2>zoo.xxx+zoo.www){
+                zoo.www = x2-zoo.xxx;
+                zoo.resize();
+            }else if (x2<zoo.xxx){
+                zoo.www += zoo.xxx-x2;
+                zoo.resize();
+                zoo.movelines(zoo.xxx-x2,0);
+                zoo.xxx = x2;
+                zoo.rejig();
+            }
+            if(y2>zoo.yyy+zoo.hhh){
+                zoo.hhh = y2-zoo.yyy;
+                zoo.resize();
+            }else if (y2<zoo.yyy){
+                zoo.hhh += zoo.yyy-y2;
+                zoo.resize();
+                zoo.movelines(0,zoo.yyy-y2);
+                zoo.yyy = y2;
+                zoo.rejig();
+            }
+
         }
         // this is neat... delete it!!!!!
         function move(){
