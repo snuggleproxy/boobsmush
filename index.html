@@ -11,6 +11,25 @@
                     move_ob(ob.babbs[ii],xchange,ychange);
                 }
         }
+        function Trig(ob){
+            trig = document.createElement("div");
+            trig.innerHTML="*";
+            trig.style.position = 'absolute';
+            trig.x = x-4;
+            trig.y = y-6;
+            trig.rejig = function(){
+                this.style.left = this.x;
+                this.style.top = this.y;
+            };
+            trig.rejig();
+            document.body.appendChild(trig);
+            ob.trigs.push(trig);
+            trig.move = function(xchange,ychange){
+                this.x += xchange;
+                this.y += ychange;
+                this.rejig();
+            }
+        }
         function Zone(ob){
             zone = svglayer.cloneNode();// fuck how do you create svg
             zone.xxx = x;
@@ -90,6 +109,9 @@
                 for (let ii=0;ii<this.zones.length;ii++){
                     this.zones[ii].move(xchange,ychange);
                 }
+                for (let ii=0;ii<this.trigs.length;ii++){
+                    this.trigs[ii].move(xchange,ychange);
+                }
             };
 
             //ob.beginPath();
@@ -118,7 +140,7 @@
             ob.hl = function(){
                 if(hl_ob!=selected_ob && hl_ob.style){
                   hl_ob.style.borderWidth=1;
-                  console.log("some programmer round here is dum. dunno who.");
+                  //console.log("some programmer round here is dum. dunno who.");
                 }
                 if(this.style && this!=selected_ob){
                     this.style.borderWidth = 2;
@@ -162,6 +184,7 @@
             ],
             'move':[
                 function(e){
+                    e.preventDefault();
                     // move center to cursor
                     closest = get_closest();
                     all_obs[closest].select();
@@ -183,6 +206,7 @@
             ],
             'draw':[
                 function(e){
+                    e.preventDefault();
                 },
                 function(e){
                     drwrlineee(selected_ob,lastx,lasty,x,y);
@@ -213,9 +237,20 @@
                 function(e){ //move
                 },
             ],
+            'trig':[
+                function(e){ //click
+                    e.preventDefault();
+                    Trig(selected_ob);
+                },
+                function(e){ //drag
+                    e.preventDefault();
+                },
+                function(e){ //move
+                },
+            ],
         }
         window.onmousedown=function(e){
-            toolz = ['move','draw','new','zone'];
+            toolz = ['move','draw','new','zone','trig'];
             menux=parseInt(menu.style.left);
             menuy=parseInt(menu.style.top);
             if(x>menux && x<menux+menu.width){
@@ -378,8 +413,8 @@
                   //setTimeout(function(){move(x,y);}, 100);
         }
 		function m(e){
-            if(goobable){
-                goobable = false;
+     //       if(goobable){
+      //          goobable = false;
                 lastx = x;
                 lasty = y;
                 x = e.pageX;
@@ -391,12 +426,12 @@
                 }else{
                     input_fun[input_mode][2](e);
                 }
-            }
+       //     } // goobable was a dum idea.
 		}
-        window.goobable = false;
-        function goob(){
-            goobable = true;
-        }
+     // window.goobable = false;
+     // function goob(){
+     //     goobable = true;
+     // }
         window.setInterval(goob, 100);// doesn't even help with the multi babb issue.
 	</script>
 	</head>
@@ -404,7 +439,7 @@
         <canvas id="canvas"></canvas>
         <svg id="svglayer" width="400" height="1000" style="position:absolute">
           <rect id="menuhl" x=100 y=100 width="38" height="38" style="fill:rgb(2550,100,100);stroke-width:4;stroke:rgb(0,0,0)" />
-            <line id="liner" x1="0" y1="0" x2="300" y2="300" style="stroke:rgb(255,255,255);stroke-width:2" />
+          <line id="liner" x1="0" y1="0" x2="300" y2="300" style="stroke:rgb(255,255,255);stroke-width:2" />
         </svg>
 	</body>
 </html>
