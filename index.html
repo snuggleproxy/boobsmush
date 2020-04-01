@@ -2,6 +2,54 @@
 	<head>
 	<script>
 
+        function Griddle(){
+            griddle = new Object(); //hha, wut does new even mean?
+            griddle.xlims=[];
+            griddle.ylims=[];
+            griddle.add = function(x1,y1,x2,y2,zone){
+                if(!this.xlims.includes(x1)){ this.xlims.push([x1,[]]); }
+                if(!this.xlims.includes(x2)){ this.xlims.push([x2,[]]); }
+                for (let ii=0;ii<this.xlims.length;ii++){
+                    //fuck readability [0] is the xcoordinate. talk to author if u wanna understand shit
+                    if(this.xlims[ii][0]>=x1){
+                        if(this.xlims[ii][0]<x2){
+                            this.xlims[ii][1].push(zone); /// NOO
+                        }
+                    }
+                }
+                if(!this.ylims.includes(y1)){ this.ylims.push([y1,[]]); }
+                if(!this.ylims.includes(y2)){ this.ylims.push([y2,[]]); }// THESE ALL NEED COPY! TODO
+                for (let ii=0;ii<this.ylims.length;ii++){
+                    //fuck readability [0] is the ycoordinate. talk to author if u wanna understand shit
+                    if(this.ylims[ii][0]>=y1){
+                        if(this.ylims[ii][0]<y2){
+                            this.ylims[ii][1].push(zone);/// NOOO
+                        }
+                    }
+                }
+            }
+            griddle.del = function(x1,y1,x2,y2,zone){
+                for (let ii=0;ii<this.xlims.length;ii++){
+                    //fuck readability [0] is the xcoordinate. talk to author if u wanna understand shit
+                    if(this.xlims[ii][0]>=x1){
+                        if(this.xlims[ii][0]<x2){
+                            // how to delete elements!!!
+                            for(let jj=0;jj<this.xlims[ii].length;jj++){//good index names bro
+                                if(this.xlims[ii][1][jj]==zone){
+                                    //do the splice!
+                                    this.xlims[ii][1].splice(jj,1);
+                                    //TODO if key obsolete remove it!
+                                    // This will happen on the first and last...
+                                    /// but only almost all of the time!
+                                }
+                            }
+                        }
+                    }
+                }/// yeah nested shit is kinky!
+            }
+            return griddle;
+        }
+        window.mcgriddle = Griddle();
         window.freshest_id = 0;
         function get_childz(ob){
                 ob.x += xchange;
@@ -34,13 +82,15 @@
             zone = svglayer.cloneNode();// fuck how do you create svg
             zone.xxx = x;
             zone.yyy = y;
-            zone.hhh = 10;
             zone.www = 10;
+            zone.hhh = 10;
             zone.rejig = function(){
                 this.style.left = this.xxx;
                 this.style.top = this.yyy;
             }
             // ahhhhhhhhhhhhhhhhhhhhhh
+            // btdubz this is used for changing size while drawin zone
+            //    and NAWT used for moving the zone!
             zone.movelines = function(xchange,ychange){
                 boobs = this.getElementsByTagName("line");
                 for (let ii=0;ii<boobs.length;ii++){
@@ -60,9 +110,11 @@
             ob.zones.push(zone);
             document.body.appendChild(zone);
             zone.move = function(xchange,ychange){
+                mcgriddle.del(this.xxx,this.yyy,this.xxx+this.www,this.yyy+this.hhh,this);
                 this.xxx = this.xxx+xchange;
                 this.yyy = this.yyy+ychange;
                 this.rejig();
+                mcgriddle.add(this.xxx,this.yyy,this.xxx+this.www,this.yyy+this.hhh,this);
             }
         }
         function Ob(mom){
@@ -283,6 +335,9 @@
             else if(input_mode=='zone' && pencil_down){
                 //this is so bad
                 drwrzonee(selected_ob,x,y,firstx,firsty);//TODO:make this get the obj it needs or not, cause just pencil tool.
+                let zone = selected_ob.zones[selected_ob.zones.length-1];// hahahahahah
+                mcgriddle.add(zone.xxx,zone.yyy,zone.xxx+zone.www,zone.yyy+zone.hhh,zone); // that input scheme u thought up is so bad.
+                                                                                        // u gotta kill & fix it
                 //drwrlineee(canvas,lastx,lasty,firstx,firsty);//TODO:make this get the obj it needs or not, cause just pencil tool.
             }
             pencil_down = false;
@@ -432,7 +487,7 @@
      // function goob(){
      //     goobable = true;
      // }
-        window.setInterval(goob, 100);// doesn't even help with the multi babb issue.
+     //   window.setInterval(goob, 100);// doesn't even help with the multi babb issue.
 	</script>
 	</head>
 	<body>
