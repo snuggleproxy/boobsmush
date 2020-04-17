@@ -6,46 +6,165 @@
             griddle = new Object(); //hha, wut does new even mean?
             griddle.xlims=[];
             griddle.ylims=[];
-            griddle.add = function(x1,y1,x2,y2,zone){
-                if(!this.xlims.includes(x1)){ this.xlims.push([x1,[]]); }
-                if(!this.xlims.includes(x2)){ this.xlims.push([x2,[]]); }
-                for (let ii=0;ii<this.xlims.length;ii++){
-                    //fuck readability [0] is the xcoordinate. talk to author if u wanna understand shit
-                    if(this.xlims[ii][0]>=x1){
-                        if(this.xlims[ii][0]<x2){
-                            this.xlims[ii][1].push(zone); /// NOO
+            griddle._add = function(smol,larg,cuts,zone){
+                let innit = false;
+                // check for smol b4 the rest
+                if(cuts.length==0){
+                    cuts.push([smol,[zone]]);
+                    cuts.push([larg,[]]);
+                }else{
+                    if(smol<cuts[0][0]){
+                        // cause there isn't already a cut b4 the first cut
+                        cuts.splice(0,0,[smol,[zone]]);
+                        innit = true;
+                    }else if(smol==cuts[0][0]){
+                        cuts[0][1].push(zone);
+                        innit = true;
+                    }
+                    for (let ii=1;ii<cuts.length;ii++){
+                        //fuck readability [0] is the xcoordinate. talk to author if u wanna understand shit
+                        //eet my cnt
+                        if(innit){
+                            if(larg>cuts[ii][0]){
+                                //put
+                                cuts[ii][1].push(zone);
+                            }else if(larg==cuts[ii][0]){
+                                break;
+                            }else{
+                                //new
+                                koopa = [...cuts[ii-1][1]];
+                                troopa = [larg,koopa];
+                                cuts.splice(ii,0,troopa);
+                                //delete zone from this range
+                                cuts[ii][1].pop();// we shud reasonably kno it only appears in
+                                                        // that one spot we just added, so don't do
+                                                        // the below flibbidy bibbidy.
+                               // for(let jj=0;jj<cuts[ii].length;jj++){//sick index names dude!
+                               //     if(cuts[ii][1][jj]==zone){
+                               //         cuts[ii][1].splice(jj,1);
+                               //     }
+                               // }
+                                break;
+                            }
+                        }else{//by elimination, this is NOT INNIT!!!
+                            // add ob to existing or new range
+                            if(smol==cuts[ii][0]){
+                                //put
+                                cuts[ii][1].push(zone);
+                                innit = true;
+                            }else if(smol<cuts[ii][0]){
+                                //new
+                                let new_cut = [smol,[...cuts[ii-1][1], zone]];
+                                // this adds one to the length of the xlims
+                                // but doesn't add one to are index@!?!?
+                                // Isn't that a problme u ask!? NO!
+                                // U see, we need to check this one again
+                                // checking it for the end of the new zone!
+                                // now u see!^^
+                                cuts.splice(ii,0,new_cut);
+                                innit = true;
+                            }//else do nuthing u fuk
                         }
                     }
-                }
-                if(!this.ylims.includes(y1)){ this.ylims.push([y1,[]]); }
-                if(!this.ylims.includes(y2)){ this.ylims.push([y2,[]]); }// THESE ALL NEED COPY! TODO
-                for (let ii=0;ii<this.ylims.length;ii++){
-                    //fuck readability [0] is the ycoordinate. talk to author if u wanna understand shit
-                    if(this.ylims[ii][0]>=y1){
-                        if(this.ylims[ii][0]<y2){
-                            this.ylims[ii][1].push(zone);/// NOOO
-                        }
+                    if(!innit){//smol>cuts[cuts.length-1])
+                            // it's already there
+                        //cuts[cuts.length-1][1].push(zone);
+                        cuts.push([smol,[zone]]);
+                        cuts.push([larg,[]]);
+                    }else if(larg>cuts[cuts.length-1][0]){
+                            // it's already there
+                        //cuts[cuts.length-1][1].push(zone);
+                        cuts.push([larg,[]]);
                     }
                 }
             }
-            griddle.del = function(x1,y1,x2,y2,zone){
-                for (let ii=0;ii<this.xlims.length;ii++){
+            griddle.add = function(x1,y1,x2,y2,zone){
+                this._add(x1,x2,this.xlims,zone);
+                this._add(y1,y2,this.ylims,zone);
+            }
+            griddle._del = function(smol,larg,cuts,zone){
+                // ourder
+                let innit = false;
+                for (let ii=0;  ii<cuts.length && cuts.length>0;  ii++){
                     //fuck readability [0] is the xcoordinate. talk to author if u wanna understand shit
-                    if(this.xlims[ii][0]>=x1){
-                        if(this.xlims[ii][0]<x2){
-                            // how to delete elements!!!
-                            for(let jj=0;jj<this.xlims[ii].length;jj++){//good index names bro
-                                if(this.xlims[ii][1][jj]==zone){
+                    if(innit){
+                        // TODO: deduplicate shit in this algorithmmm
+                        //remove zone from cut
+                        for(let jj=0;jj<cuts[ii][1].length;jj++){//good index names bro
+                            if(cuts[ii][1][jj]==zone){
+                                //do the splice!
+                                cuts[ii][1].splice(jj,1);
+                                jj--;
+                            }
+                        }
+                        //see if we're at the end
+                        if(cuts[ii][0]==larg){
+                            //remove cut if applickableh
+                            // This will happen on the first and last...
+                            /// but only almost all of the time!
+                            // TODO: is this more general than need be?
+                            if (ii==0){
+                                if(cuts[ii][1].length == 0){
+                                    cuts.splice(ii,1);// almost impossible for this to happen right?
+                                                    // but not impossible right?
+                                                // still, you'd have to be implementing some bullshizz for
+                                            // it to ever be relevent
+                                        // but fuck it it werkz so ehhhhhhhhhhh.........
+                                }
+                            }else if(cuts[ii][1].length == cuts[ii-1][1].length ){
+                                let samlish = true;
+                                for(let jj=0;jj<cuts[ii][1].length;jj++){//i'm unfin' over those index names
+                                    if(cuts[ii][1][jj] != cuts[ii-1][1][jj]){
+                                        samlish=false;
+                                        break;// this break we kno they ain't same..
+                                    }// write more code than the other language to keep fresh!
+                                }
+                                if(samlish){
+                                    cuts.splice(ii,1);
+                                }
+                            }
+                            break;// this break is cauze we done the zone
+                        }
+                    }else{
+                        //look for start if u kno wut i mean
+                        if(cuts[ii][0]==smol){
+                            innit=true;
+                            //remove zone from cut
+                            for(let jj=0;jj<cuts[ii][1].length;jj++){//good index names bro
+                                if(cuts[ii][1][jj]==zone){
                                     //do the splice!
-                                    this.xlims[ii][1].splice(jj,1);
-                                    //TODO if key obsolete remove it!
-                                    // This will happen on the first and last...
-                                    /// but only almost all of the time!
+                                    cuts[ii][1].splice(jj,1);
+                                    jj--;
+                                }
+                            }
+                            //remove cut if applickableh
+                            // This will happen on the first and last...
+                            /// but only almost all of the time!
+                            if (ii==0){
+                                if(cuts[ii][1].length == 0){
+                                    cuts.splice(ii,1);
+                                    ii--;
+                                }
+                            }else if(cuts[ii][1].length == cuts[ii-1][1].length ){
+                                let samlish = true;
+                                for(let jj=0;jj<cuts[ii][1].length;jj++){//i'm unfin' over those index names
+                                    if(cuts[ii][1][jj] != cuts[ii-1][1][jj]){
+                                        samlish=false;
+                                        break;
+                                    }// write more code than the other language to keep fresh!
+                                }
+                                if(samlish){
+                                    cuts.splice(ii,1);
+                                    ii--;
                                 }
                             }
                         }
                     }
                 }/// yeah nested shit is kinky!
+            }
+            griddle.del = function(x1,y1,x2,y2,zone){
+                this._del(x1,x2,this.xlims,zone);
+                this._del(y1,y2,this.ylims,zone);
             }
             return griddle;
         }
@@ -340,6 +459,9 @@
                                                                                         // u gotta kill & fix it
                 //drwrlineee(canvas,lastx,lasty,firstx,firsty);//TODO:make this get the obj it needs or not, cause just pencil tool.
             }
+            //TODO: take this debug info out
+            console.log("xlims:",mcgriddle.xlims);
+            console.log("ylims:",mcgriddle.ylims);
             pencil_down = false;
         }
         ////////////////
