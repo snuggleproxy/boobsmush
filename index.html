@@ -178,6 +178,7 @@
                     move_ob(ob.babbs[ii],xchange,ychange);
                 }
         }
+        window.trigs=[];
         function Trig(ob){
             trig = document.createElement("div");
             trig.innerHTML="*";
@@ -191,11 +192,87 @@
             trig.rejig();
             document.body.appendChild(trig);
             ob.trigs.push(trig);
+            trigs.push(trig);
             trig.move = function(xchange,ychange){
+                // TODO: OH NO!!! It's looping through all trigs and looking at each trig, how did I not notice... I am dum
+                for(let ii=0; ii<trigs.length; ii++){
+                    if(trigs[ii]==trig){
+                        trigs.splice(ii,1);
+                        ii--;//TODO: this shouldn't be needed, every trig is here once.
+                    }
+                }
                 this.x += xchange;
                 this.y += ychange;
                 this.rejig();
+                trigs.push(trig); /// TODO: wait, wut does this even do? trigs should always have all trigs???
+                let nu_zones = this.wut_zones();
+                //compare zones
+                let samlish = false;
+                if(nu_zones.length == this.in_the_zone.length ){
+                    samlish = true;
+                    for(let jj=0;jj<nu_zones.length;jj++){//i'm unfin' over those index names
+                        if(nu_zones[jj] != this.in_the_zone[jj]){
+                            samlish=false;
+                            break;// this break we kno they ain't same..
+                        }// write more code than the other language to keep fresh!
+                    }
+                }
+                this.in_the_zone = this.wut_zones();
+                if(!samlish){
+                    this.init_duck_fucking();
+                }
             }
+            trig.titilation = 0;
+            trig.aroused = false;
+            trig.init_duck_fucking = function(){
+                this.titilation = 10;
+                if(!this.aroused){
+                    this.style.color="yellow";
+                    this.aroused=true;
+                    this.fuck_a_duck(this);
+                }
+            }
+            trig.fuck_a_duck = function(fck){
+                fck.titilation--;
+                if(fck.titilation==0){
+                    fck.style.color="black";
+                    fck.aroused=false;
+                }else{
+                    setTimeout(fck.fuck_a_duck, 100, fck);
+                }// I'm sorry u had to witness this... why r u even tho?
+            }
+            trig.wut_zones = function(){
+                let xs = [];
+                if(mcgriddle.xlims.length>0 && this.x>=mcgriddle.xlims[0][0]){
+                    for (let ii=1; ii<mcgriddle.xlims.length; ii++){
+                        if(this.x<mcgriddle.xlims[ii][0]){
+                            xs = mcgriddle.xlims[ii-1][1];
+                            break;
+                        }
+                    }
+                }
+                let ys = [];
+                if(mcgriddle.xlims.length>0 && this.y>=mcgriddle.ylims[0][0]){
+                    for (let ii=1; ii<mcgriddle.ylims.length; ii++){
+                        if(this.y<mcgriddle.ylims[ii][0]){
+                            ys = mcgriddle.ylims[ii-1][1];
+                            break;
+                        }
+                    }
+                }
+                let innn = [];
+                for(let ii=0; ii<xs.length; ii++){
+                    for(let jj=0; jj<ys.length; jj++){
+                        //TODO: this could be more efficient
+                        if(xs[ii]==ys[jj]){
+                            innn.push(xs[ii]);
+                            break;
+                        }
+                    }
+                }
+                return(innn);
+            }
+            trig.in_the_zone = trig.wut_zones();
         }
         function Zone(ob){
             zone = svglayer.cloneNode();// fuck how do you create svg
@@ -459,9 +536,6 @@
                                                                                         // u gotta kill & fix it
                 //drwrlineee(canvas,lastx,lasty,firstx,firsty);//TODO:make this get the obj it needs or not, cause just pencil tool.
             }
-            //TODO: take this debug info out
-            console.log("xlims:",mcgriddle.xlims);
-            console.log("ylims:",mcgriddle.ylims);
             pencil_down = false;
         }
         ////////////////
