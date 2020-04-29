@@ -399,9 +399,21 @@
                 document.body.appendChild(ob);    
                 all_obs.push(ob);
                 // griddle for the stars!
-                ob.stars = [Star(ob)];
+                let strrr = Star(ob);
+                ob.stars = [strrr];
+                // TODO: make logic for this!!!
                 ob.starmap = Griddle();
-                ob.current_star = 0;
+                ob.starmap.add(strrr.x,strrr.y,strrr.x+strrr.width,strrr.y+strrr.height,strrr);
+                ob.current_star = strrr;
+                ob.new_star = function(){
+                    star = Star(this);
+                    star.x=x;
+                    star.y=y;
+                    star.rejig();
+                    this.stars.push(star);
+                    this.current_star=star;
+                    this.starmap.add(star.x,star.y,star.x+star.width,star.y+star.height,star);
+                }
                 return(ob)
             }
 
@@ -448,6 +460,11 @@
                 document.body.appendChild(star);
                 return(star);
             }
+
+            /////////////////////////////
+            // end of objects
+            /////////////////////////////
+
 
             // uhh, shouldn't some of this be in init? do we even need init? How does loading werk?
             pencil_down = false;
@@ -509,7 +526,18 @@
                             //TODO: this should be creating the creation of a star!!!
                             // PART OF A BEAUTIFUL CONSTELLATION!
                             // NAWT A TRIG!
-                        Trig(selected_ob);
+                        //Trig(selected_ob);
+
+                        stars_in_tha_skyyyy=selected_ob.starmap.wut_zones(x,y);
+                        console.log("hi");
+                            console.log(stars_in_tha_skyyyy);
+                        if(stars_in_tha_skyyyy.length > 0){
+                            selected_ob.current_star = stars_in_tha_skyyyy[0];
+                            selected_ob.current_star.restore();
+                        }else{
+                            selected_ob.new_star();
+                        }
+                            // TODO: why is indentation broken here???
                     }
 
                 },
@@ -553,9 +581,21 @@
                 function(e){ //move
                 },
             ],
+            'trash':[
+                function(e){ //click
+                    // i dunno if this really makes sense
+                    e.preventDefault();
+                    alert("This doesnt do anything yet");
+                },
+                function(e){ //drag
+                    e.preventDefault();
+                },
+                function(e){ //move
+                },
+            ],
         }
         window.onmousedown=function(e){
-            toolz = ['move','draw','new','zone','trig'];
+            toolz = ['move','draw','new','zone','trig','trash'];
             menux=parseInt(menu.style.left);
             menuy=parseInt(menu.style.top);
             if(x>menux && x<menux+menu.width){
@@ -592,6 +632,10 @@
                 mcgriddle.add(zone.xxx,zone.yyy,zone.xxx+zone.www,zone.yyy+zone.hhh,zone); // that input scheme u thought up is so bad.
                                                                                         // u gotta kill & fix it
                 //drwrlineee(canvas,lastx,lasty,firstx,firsty);//TODO:make this get the obj it needs or not, cause just pencil tool.
+            }
+            else if(input_mode=='draw'){
+                //so so bad
+                selected_ob.current_star.update();
             }
             pencil_down = false;
         }
