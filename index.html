@@ -167,6 +167,7 @@
                     this._del(y1,y2,this.ylims,zone);
                 }
                 griddle.wut_zones = function(xpos, ypos){
+                    // returns the zones sorted order?
                     let xs = [];
                     if(this.xlims.length>0 && xpos>=this.xlims[0][0]){
                         for (let ii=1; ii<this.xlims.length; ii++){
@@ -228,7 +229,7 @@
                     // TODO: OH NO!!! It's looping through all trigs and looking at each trig, how did I not notice... I am dum
                     for(let ii=0; ii<trigs.length; ii++){
                         if(trigs[ii]==trig){
-                            trigs.splice(ii,1);
+                            trigs.splice(ii,1);//remove
                             ii--;//TODO: this shouldn't be needed, every trig is here once.
                         }
                     }
@@ -236,19 +237,48 @@
                     this.y += ychange;
                     this.rejig();
                     trigs.push(trig); /// TODO: wait, wut does this even do? trigs should always have all trigs???
-                    let nu_zones = mcgriddle.wut_zones(this.x,this.y);
+
                     //compare zones
-                    let samlish = false;
-                    if(nu_zones.length == this.in_the_zone.length ){
-                        samlish = true;
-                        for(let jj=0;jj<nu_zones.length;jj++){//i'm unfin' over those index names
-                            if(nu_zones[jj] != this.in_the_zone[jj]){
-                                samlish=false;
-                                break;// this break we kno they ain't same..
-                            }// write more code than the other language to keep fresh!
+                    let trigs_lost = [...this.in_the_zone];
+                    this.in_the_zone = mcgriddle.wut_zones(this.x,this.y);// freshen this trigs zones!
+                    let trigs_gained = [...this.in_the_zone];
+
+                    let lostii=0;
+                    let nuii=0;
+                    while (lostii<trigs_lost.length){
+                        if (trigs_lost[lostii]==trigs_gained[nuii]){
+                            trigs_lost.splice(lostii,1);
+                            trigs_gained.splice(nuii,1);
+                        }else{
+                            nuii++;
+                        }
+                        if (nuii>=trigs_gained.length){// greater than for the edge case where there are no nu zones
+                            nuii=0;
+                            lostii++;
                         }
                     }
-                    this.in_the_zone = mcgriddle.wut_zones(this.x,this.y);
+
+                    let samlish = true;
+                    if(trigs_lost.length>0){
+                        samlish=false;
+                        //do something with events?
+                    }
+                    if(trigs_gained.length>0){
+                        samlish=false;
+                        //do something with events?
+                    }
+                    
+                    // old algorithm that only cared about if it changed, not how
+                   // let samlish = false;
+                   // if(nu_zones.length == this.in_the_zone.length ){
+                   //     samlish = true;
+                   //     for(let jj=0;jj<nu_zones.length;jj++){//i'm unfin' over those index names
+                   //         if(nu_zones[jj] != this.in_the_zone[jj]){
+                   //             samlish=false;
+                   //             break;// this break we kno they ain't same..
+                   //         }// write more code than the other language to keep fresh!
+                   //     }
+                   // }
                     if(!samlish){
                         this.init_duck_fucking();
                     }
@@ -401,12 +431,16 @@
                     hl_ob = this;
                 }
                 // griddle for the stars!
-                let strrr = Star(ob);
-                ob.stars = [strrr];
+                //TODO this doesn't need to happen
+                //let strrr = Star(ob);
+                //ob.stars = [strrr];
+                ob.stars=[];
                 // TODO: make logic for this!!!
+                // I don't remember what was meant by this and I don't care. Maybe u will.
                 ob.starmap = Griddle();
-                ob.starmap.add(strrr.x,strrr.y,strrr.x+strrr.width,strrr.y+strrr.height,strrr);
-                ob.current_star = strrr;
+                //ob.starmap.add(strrr.x,strrr.y,strrr.x+strrr.width,strrr.y+strrr.height,strrr);
+                //ob.current_star = strrr;
+                ob.current_star = null;
                 ob.new_star = function(){
                     star = Star(this);
                     star.x=x;
@@ -435,6 +469,7 @@
             Star = function(ob){
                 star = document.createElement("canvas");
                 star.ob = ob;
+                star.ob.current_star=star;
                 star.img = new Image;
                 star.style.position = 'absolute';
                 star.width=50;
@@ -472,6 +507,13 @@
                     this.ob.ctx.clearRect(0,0,this.ob.width,this.ob.height);
                     this.ob.ctx.drawImage(this.img,0,0);
                 }
+                star.current=true;
+                star.make_current = function(){
+                    this.ob.current_star.current=false;
+                    this.ob.current_star=this;
+                    this.current=true;
+                    this.restore();
+                }
                 document.body.appendChild(star);
                 return(star);
             }
@@ -479,6 +521,10 @@
             /////////////////////////////
             // end of objects
             /////////////////////////////
+
+            ///////////////////////////
+            // begining of... not objects!
+            ///////////////////////////
 
 
             // uhh, shouldn't some of this be in init? do we even need init? How does loading werk?
@@ -547,8 +593,7 @@
                         console.log("hi");
                             console.log(stars_in_tha_skyyyy);
                         if(stars_in_tha_skyyyy.length > 0){
-                            selected_ob.current_star = stars_in_tha_skyyyy[0];
-                            selected_ob.current_star.restore();
+                            stars_in_tha_skyyyy[0].make_current();
                         }else{
                             selected_ob.new_star();
                         }
@@ -662,7 +707,9 @@
             }
             else if(input_mode=='draw'){
                 //so so bad
-                selected_ob.current_star.update();
+                if(selected_ob.current_star){
+                    selected_ob.current_star.update();
+                }
             }
             pencil_down = false;
         }
@@ -670,6 +717,7 @@
         // init function
         ////////////////
         window.onload=function(){
+            console.warn("Shut up! It doesn't contain any text at all!")
 
             window.all_obs = [];
             var w = window.innerWidth;
@@ -680,9 +728,7 @@
             canvas.style.left = '0px';
             canvas.style.top = '0px';
 
-            // custom cursorz r coool!
-            document.body.style.cursor = "crosshair"
-
+            // tool menu
             window.menu = document.createElement("img");
             menu.style.position = 'absolute';
             menu.style.left=10;
@@ -691,6 +737,30 @@
             menu.onmousedown=function(e){e.preventDefault()};
             document.body.appendChild(menu);
             window.input_mode = 'move';
+
+            // custom cursorz r coool!
+            //document.body.style.cursor = "crosshair"
+            document.body.style.cursor = "none";//window.menu;
+            window.cursor = document.createElement("img");
+            cursor.style.position = 'absolute';
+            cursor.src = "cursor.png";
+            document.body.appendChild(cursor);
+
+            // menu for events!
+            eventMenu = document.createElement("div");
+            eventMenu.style.position = 'absolute';
+            eventMenu.style.left=10;
+            eventMenu.style.top=360;
+            eventMenu.style.width=70;
+            eventMenu.style.height=300;
+            eventMenu.style.border='solid';
+            eventMenu.style.borderWidth=2;
+            eventMenu.style.overflow='scroll';
+            document.body.appendChild(eventMenu);
+            dickitysnack = document.createElement("div");
+            dickitysnack.style.width=50;
+            dickitysnack.innerHTML="200ms 4s <> <> <> >< >< >< <> >< <> <> <> <> >< >< >< <> >< <> >< >< >< <> >< >< >< >< <> >< <> >< >< >< <> >< <> >< >< >< <> >< <> >< >< >< <> >< <> >< >< >< <> >< <> >< >< >< <> >< <> >< >< >< <> >< <> >< >< >< <> >< <> >< >< >< <> >< <> <> >< >< >< <> >< <>" ;
+            eventMenu.appendChild(dickitysnack);
 
             fuck_you=10;
             canvas.width=window.innerWidth-fuck_you;
@@ -805,6 +875,9 @@
                 }else{
                     input_fun[input_mode][2](e);
                 }
+            //move cursor
+                cursor.style.top = y;
+                cursor.style.left = x;
        //     } // goobable was a dum idea.
 		}
      // window.goobable = false;
@@ -822,3 +895,4 @@
         </svg>
 	</body>
 </html>
+<!--800 lines of code! Hawt!>
