@@ -366,9 +366,13 @@
                 //ob.rect(0, 0, canvas.width, canvas.height);
                 //ob.fillStyle = 'yellow';
                 //ob.fill();
+                //////////////////////////////////
+                //  changing what ob's selected
+                //////////////////////////////////
                 ob.select = function(){
                     //// old selected
                     if(selected_ob.style){
+                    selected_ob.hide_stars();
                         selected_ob.style.borderWidth=1;
                     }
                     // zones
@@ -378,6 +382,7 @@
                     }
                     //// new selected!!!
                     selected_ob = this;
+                    selected_ob.show_stars();
                     selected_ob.style.borderWidth=3;
                     // zones
                     for (let ii=0;ii<selected_ob.zones.length;ii++){
@@ -395,9 +400,6 @@
                     }
                     hl_ob = this;
                 }
-                ob.select();
-                document.body.appendChild(ob);    
-                all_obs.push(ob);
                 // griddle for the stars!
                 let strrr = Star(ob);
                 ob.stars = [strrr];
@@ -414,6 +416,19 @@
                     this.current_star=star;
                     this.starmap.add(star.x,star.y,star.x+star.width,star.y+star.height,star);
                 }
+                ob.hide_stars = function(){
+                    for(let ii=0;ii<this.stars.length;ii++){
+                        this.stars[ii].hidden=true;
+                    }
+                }
+                ob.show_stars = function(){
+                    for(let ii=0;ii<this.stars.length;ii++){
+                        this.stars[ii].hidden=false;
+                    }
+                }
+                ob.select();
+                document.body.appendChild(ob);    
+                all_obs.push(ob);
                 return(ob)
             }
 
@@ -607,7 +622,19 @@
                     }else{
                         for(i=toolz.length-1;i>=0;i--){
                             if(y<menuy+(i+1)*40){ //TODO: probz don't hardcode this
+                                let old_mode = input_mode;
                                 input_mode = toolz[i]
+
+                           //   if(old_mode == "draw" && input_mode != "draw"){
+                           //       //suck it life!
+                           //       selected_ob.hide_stars();
+                           //   }
+                           //   if(old_mode != "draw" && input_mode == "draw"){
+                           //       //suck it life!
+                           //       selected_ob.show_stars();
+                           //   }
+
+                                // move the dum tool selectorb
                                 menuhl.y.baseVal.value=5+i*40;
                             }
                         }
