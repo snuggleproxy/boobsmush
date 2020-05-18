@@ -17,7 +17,7 @@ function Tock(ob,fromStar,toStar){
 freshest_tick_id=0;
 function Tick(zone,trig,exit){
     tick = new Object();
-    tick.id=freshest_tick_id
+    tick.id=freshest_tick_id++;
     tick.exit = exit;
     tick.zone = zone;
     tick.trig = trig;
@@ -273,8 +273,10 @@ function get_childz(ob){
         }
 }
 window.trigs=[];
+freshest_trig_id=0;
 function Trig(ob){
     trig = document.createElement("div");
+    trig.id=freshest_trig_id++;
     trig.innerHTML="*";
     trig.style.position = 'absolute';
     trig.x = x;
@@ -532,6 +534,16 @@ function Ob(mom){
     ob.show_stars = function(){
         for(let ii=0;ii<this.stars.length;ii++){
             this.stars[ii].hidden=false;
+        }
+    }
+    ob.hide_trigs = function(){
+        for(let ii=0;ii<this.trigs.length;ii++){
+            this.trigs[ii].style.visibility="hidden";
+        }
+    }
+    ob.show_trigs = function(){
+        for(let ii=0;ii<this.trigs.length;ii++){
+            this.trigs[ii].style.visibility="";
         }
     }
     ob.select();
@@ -825,6 +837,7 @@ window.onmousedown=function(e){
                                 if(all_obs[jj].pregame_star){
                                     all_obs[jj].pregame_star.make_current();
                                 }
+                                all_obs[jj].show_trigs();
                             }
                             menu.hidden=false;
                             eventMenu.hidden=false;
@@ -838,6 +851,7 @@ window.onmousedown=function(e){
                                 all_obs[jj].pregame_y=all_obs[jj].y;
                                 all_obs[jj].style.border='hidden';
                                 all_obs[jj].pregame_star=all_obs[jj].current_star;
+                                all_obs[jj].hide_trigs();
                             }
                             menu.hidden=true;
                             menuhl.y.baseVal.value=5;
@@ -953,7 +967,7 @@ window.onload=function(){
             }
         }
 
-        eventMenu.appendChild(new_menu_tick);
+        eventMenu.insertBefore(new_menu_tick,eventMenu.firstChild);
     }
     document.body.appendChild(eventMenu);
 
