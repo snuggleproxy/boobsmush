@@ -1,901 +1,1015 @@
-    <html onmousemove="m(event)">
-        <head>
-        <script>
+<html onmousemove="m(event)">
+<head>
+<script>
 
-            function Griddle(){
-                griddle = new Object(); //hha, wut does new even mean?
-                griddle.xlims=[];
-                griddle.ylims=[];
-                griddle._add = function(smol,larg,cuts,zone){
-                    let innit = false;
-                    // check for smol b4 the rest
-                    if(cuts.length==0){
-                        cuts.push([smol,[zone]]);
-                        cuts.push([larg,[]]);
-                    }else{
-                        if(smol<cuts[0][0]){
-                            // cause there isn't already a cut b4 the first cut
-                            cuts.splice(0,0,[smol,[zone]]);
-                            innit = true;
-                        }else if(smol==cuts[0][0]){
-                            cuts[0][1].push(zone);
-                            innit = true;
-                        }
-                        for (let ii=1;ii<cuts.length;ii++){
-                            //fuck readability [0] is the xcoordinate. talk to author if u wanna understand shit
-                            //eet my cnt
-                            if(innit){
-                                if(larg>cuts[ii][0]){
-                                    //put
-                                    cuts[ii][1].push(zone);
-                                }else if(larg==cuts[ii][0]){
-                                    break;
-                                }else{
-                                    //new
-                                    koopa = [...cuts[ii-1][1]];
-                                    troopa = [larg,koopa];
-                                    cuts.splice(ii,0,troopa);
-                                    //delete zone from this range
-                                    cuts[ii][1].pop();// we shud reasonably kno it only appears in
-                                                            // that one spot we just added, so don't do
-                                                            // the below flibbidy bibbidy.
-                                   // for(let jj=0;jj<cuts[ii].length;jj++){//sick index names dude!
-                                   //     if(cuts[ii][1][jj]==zone){
-                                   //         cuts[ii][1].splice(jj,1);
-                                   //     }
-                                   // }
-                                    break;
-                                }
-                            }else{//by elimination, this is NOT INNIT!!!
-                                // add ob to existing or new range
-                                if(smol==cuts[ii][0]){
-                                    //put
-                                    cuts[ii][1].push(zone);
-                                    innit = true;
-                                }else if(smol<cuts[ii][0]){
-                                    //new
-                                    let new_cut = [smol,[...cuts[ii-1][1], zone]];
-                                    // this adds one to the length of the xlims
-                                    // but doesn't add one to are index@!?!?
-                                    // Isn't that a problme u ask!? NO!
-                                    // U see, we need to check this one again
-                                    // checking it for the end of the new zone!
-                                    // now u see!^^
-                                    cuts.splice(ii,0,new_cut);
-                                    innit = true;
-                                }//else do nuthing u fuk
-                            }
-                        }
-                        if(!innit){//smol>cuts[cuts.length-1])
-                                // it's already there
-                            //cuts[cuts.length-1][1].push(zone);
-                            cuts.push([smol,[zone]]);
-                            cuts.push([larg,[]]);
-                        }else if(larg>cuts[cuts.length-1][0]){
-                                // it's already there
-                            //cuts[cuts.length-1][1].push(zone);
-                            cuts.push([larg,[]]);
-                        }
-                    }
-                }
-                griddle.add = function(x1,y1,x2,y2,zone){
-                    this._add(x1,x2,this.xlims,zone);
-                    this._add(y1,y2,this.ylims,zone);
-                }
-                griddle._del = function(smol,larg,cuts,zone){
-                    // ourder
-                    let innit = false;
-                    for (let ii=0;  ii<cuts.length && cuts.length>0;  ii++){
-                        //fuck readability [0] is the xcoordinate. talk to author if u wanna understand shit
-                        if(innit){
-                            // TODO: deduplicate shit in this algorithmmm
-                            //remove zone from cut
-                            for(let jj=0;jj<cuts[ii][1].length;jj++){//good index names bro
-                                if(cuts[ii][1][jj]==zone){
-                                    //do the splice!
-                                    cuts[ii][1].splice(jj,1);
-                                    jj--;
-                                }
-                            }
-                            //see if we're at the end
-                            if(cuts[ii][0]==larg){
-                                //remove cut if applickableh
-                                // This will happen on the first and last...
-                                /// but only almost all of the time!
-                                // TODO: is this more general than need be?
-                                if (ii==0){
-                                    if(cuts[ii][1].length == 0){
-                                        cuts.splice(ii,1);// almost impossible for this to happen right?
-                                                        // but not impossible right?
-                                                    // still, you'd have to be implementing some bullshizz for
-                                                // it to ever be relevent
-                                            // but fuck it it werkz so ehhhhhhhhhhh.........
-                                    }
-                                }else if(cuts[ii][1].length == cuts[ii-1][1].length ){
-                                    let samlish = true;
-                                    for(let jj=0;jj<cuts[ii][1].length;jj++){//i'm unfin' over those index names
-                                        if(cuts[ii][1][jj] != cuts[ii-1][1][jj]){
-                                            samlish=false;
-                                            break;// this break we kno they ain't same..
-                                        }// write more code than the other language to keep fresh!
-                                    }
-                                    if(samlish){
-                                        cuts.splice(ii,1);
-                                    }
-                                }
-                                break;// this break is cauze we done the zone
-                            }
-                        }else{
-                            //look for start if u kno wut i mean
-                            if(cuts[ii][0]==smol){
-                                innit=true;
-                                //remove zone from cut
-                                for(let jj=0;jj<cuts[ii][1].length;jj++){//good index names bro
-                                    if(cuts[ii][1][jj]==zone){
-                                        //do the splice!
-                                        cuts[ii][1].splice(jj,1);
-                                        jj--;
-                                    }
-                                }
-                                //remove cut if applickableh
-                                // This will happen on the first and last...
-                                /// but only almost all of the time!
-                                if (ii==0){
-                                    if(cuts[ii][1].length == 0){
-                                        cuts.splice(ii,1);
-                                        ii--;
-                                    }
-                                }else if(cuts[ii][1].length == cuts[ii-1][1].length ){
-                                    let samlish = true;
-                                    for(let jj=0;jj<cuts[ii][1].length;jj++){//i'm unfin' over those index names
-                                        if(cuts[ii][1][jj] != cuts[ii-1][1][jj]){
-                                            samlish=false;
-                                            break;
-                                        }// write more code than the other language to keep fresh!
-                                    }
-                                    if(samlish){
-                                        cuts.splice(ii,1);
-                                        ii--;
-                                    }
-                                }
-                            }
-                        }
-                    }/// yeah nested shit is kinky!
-                }
-                griddle.del = function(x1,y1,x2,y2,zone){
-                    this._del(x1,x2,this.xlims,zone);
-                    this._del(y1,y2,this.ylims,zone);
-                }
-                griddle.wut_zones = function(xpos, ypos){
-                    // returns the zones sorted order?
-                    let xs = [];
-                    if(this.xlims.length>0 && xpos>=this.xlims[0][0]){
-                        for (let ii=1; ii<this.xlims.length; ii++){
-                            if(xpos<this.xlims[ii][0]){
-                                xs = this.xlims[ii-1][1];
-                                break;
-                            }
-                        }
-                    }
-                    let ys = [];
-                    if(this.xlims.length>0 && ypos>=this.ylims[0][0]){
-                        for (let ii=1; ii<this.ylims.length; ii++){
-                            if(ypos<this.ylims[ii][0]){
-                                ys = this.ylims[ii-1][1];
-                                break;
-                            }
-                        }
-                    }
-                    let innn = [];
-                    for(let ii=0; ii<xs.length; ii++){
-                        for(let jj=0; jj<ys.length; jj++){
-                            //TODO: this could be more efficient
-                            if(xs[ii]==ys[jj]){
-                                innn.push(xs[ii]);
-                                break;
-                            }
-                        }
-                    }
-                    return(innn);
-                }
-                return griddle;
-            }
-            window.mcgriddle = Griddle();
-            window.freshest_id = 0;
-            function get_childz(ob){
-                    ob.x += xchange;
-                    ob.y += ychange;
-                    ob.rejig();
-                    for (ii=0;ii<ob.babbs.length;ii++){
-                        move_ob(ob.babbs[ii],xchange,ychange);
-                    }
-            }
-            window.trigs=[];
-            function Trig(ob){
-                trig = document.createElement("div");
-                trig.innerHTML="*";
-                trig.style.position = 'absolute';
-                trig.x = x;
-                trig.y = y;
-                trig.rejig = function(){
-                    this.style.left = this.x-2;
-                    this.style.top = this.y-4;
-                };
-                trig.rejig();
-                document.body.appendChild(trig);
-                ob.trigs.push(trig);
-                trigs.push(trig);
-                trig.move = function(xchange,ychange){
-                    // TODO: OH NO!!! It's looping through all trigs and looking at each trig, how did I not notice... I am dum
-                    for(let ii=0; ii<trigs.length; ii++){
-                        if(trigs[ii]==trig){
-                            trigs.splice(ii,1);//remove
-                            ii--;//TODO: this shouldn't be needed, every trig is here once.
-                        }
-                    }
-                    this.x += xchange;
-                    this.y += ychange;
-                    this.rejig();
-                    trigs.push(trig); /// TODO: wait, wut does this even do? trigs should always have all trigs???
-
-                    //compare zones
-                    let trigs_lost = [...this.in_the_zone];
-                    this.in_the_zone = mcgriddle.wut_zones(this.x,this.y);// freshen this trigs zones!
-                    let trigs_gained = [...this.in_the_zone];
-
-                    let lostii=0;
-                    let nuii=0;
-                    while (lostii<trigs_lost.length){
-                        if (trigs_lost[lostii]==trigs_gained[nuii]){
-                            trigs_lost.splice(lostii,1);
-                            trigs_gained.splice(nuii,1);
-                        }else{
-                            nuii++;
-                        }
-                        if (nuii>=trigs_gained.length){// greater than for the edge case where there are no nu zones
-                            nuii=0;
-                            lostii++;
-                        }
-                    }
-
-                    let samlish = true;
-                    if(trigs_lost.length>0){
-                        samlish=false;
-                        //do something with events?
-                    }
-                    if(trigs_gained.length>0){
-                        samlish=false;
-                        //do something with events?
-                    }
-                    
-                    // old algorithm that only cared about if it changed, not how
-                   // let samlish = false;
-                   // if(nu_zones.length == this.in_the_zone.length ){
-                   //     samlish = true;
-                   //     for(let jj=0;jj<nu_zones.length;jj++){//i'm unfin' over those index names
-                   //         if(nu_zones[jj] != this.in_the_zone[jj]){
-                   //             samlish=false;
-                   //             break;// this break we kno they ain't same..
-                   //         }// write more code than the other language to keep fresh!
-                   //     }
-                   // }
-                    if(!samlish){
-                        this.init_duck_fucking();
-                    }
-                }
-                trig.titilation = 0;
-                trig.aroused = false;
-                trig.init_duck_fucking = function(){
-                    this.titilation = 3;
-                    if(!this.aroused){
-                        this.style.color="yellow";
-                        this.aroused=true;
-                        this.fuck_a_duck(this);
-                    }
-                }
-                trig.fuck_a_duck = function(fck){
-                    fck.titilation--;
-                    if(fck.titilation==0){
-                        fck.style.color="black";
-                        fck.aroused=false;
-                    }else{
-                        setTimeout(fck.fuck_a_duck, 100, fck);
-                    }// I'm sorry u had to witness this... why r u even tho?
-                }
-                trig.in_the_zone = mcgriddle.wut_zones(this.x,this.y);
-            }
-            function Zone(ob){
-                zone = svglayer.cloneNode();// fuck how do you create svg
-                zone.xxx = x;
-                zone.yyy = y;
-                zone.www = 10;
-                zone.hhh = 10;
-                zone.rejig = function(){
-                    this.style.left = this.xxx;
-                    this.style.top = this.yyy;
-                }
-                // ahhhhhhhhhhhhhhhhhhhhhh
-                // btdubz this is used for changing size while drawin zone
-                //    and NAWT used for moving the zone!
-                zone.movelines = function(xchange,ychange){
-                    boobs = this.getElementsByTagName("line");
-                    for (let ii=0;ii<boobs.length;ii++){
-                        boobs[ii].x1.baseVal.value += xchange;
-                        boobs[ii].x2.baseVal.value += xchange;
-                        boobs[ii].y1.baseVal.value += ychange;
-                        boobs[ii].y2.baseVal.value += ychange;
-                    }
-                    
-                }
-                zone.resize = function(){
-                    this.style.height = this.hhh;
-                    this.style.width = this.www;
-                }
-                zone.resize();
-                zone.rejig();
-                ob.zones.push(zone);
-                document.body.appendChild(zone);
-                zone.move = function(xchange,ychange){
-                    mcgriddle.del(this.xxx,this.yyy,this.xxx+this.www,this.yyy+this.hhh,this);
-                    this.xxx = this.xxx+xchange;
-                    this.yyy = this.yyy+ychange;
-                    this.rejig();
-                    mcgriddle.add(this.xxx,this.yyy,this.xxx+this.www,this.yyy+this.hhh,this);
-                }
-            }
-            function Ob(mom){
-                ob = document.createElement("canvas");
-                ob.style.position = 'absolute';
-                ob.x = x;
-                ob.y = y;
-                ob.width=10;
-                ob.height=10;
-                ob.id=freshest_id++;
-                ob.liner = liner.cloneNode();
-                svglayer.appendChild(ob.liner);
-                ob.rejig = function(){
-                    this.style.left = this.x;
-                    this.style.top = this.y;
-                        this.liner.x1.baseVal.value= this.x;
-                        this.liner.y1.baseVal.value= this.y;
-                        if(this.mom){
-                            this.liner.x2.baseVal.value = this.mom.x;
-                            this.liner.y2.baseVal.value = this.mom.y;
-                        } else {
-                            this.liner.x2.baseVal.value = 0;
-                            this.liner.y2.baseVal.value = 0;
-                        }
-
-                };
-                ob.style.border='dashed';
-                ob.ctx=ob.getContext('2d');
-                if(mom){// there should only be one object without a mom.
-                    ob.mom = mom;
-                    mom.babbs.push(ob);
-                }
-                ob.rejig();
-                ob.zones = [];
-                ob.trigs = [];
-                ob.babbs = [];
-                ob.move = function(xchange,ychange){
-                    this.x += xchange;
-                    this.y += ychange;
-                    this.rejig();
-                    for (let ii=0;ii<this.babbs.length;ii++){
-                        this.babbs[ii].move(xchange,ychange);
-                    }
-                    for (let ii=0;ii<this.zones.length;ii++){
-                        this.zones[ii].move(xchange,ychange);
-                    }
-                    for (let ii=0;ii<this.trigs.length;ii++){
-                        this.trigs[ii].move(xchange,ychange);
-                    }
-                };
-
-                //ob.beginPath();
-                //ob.rect(0, 0, canvas.width, canvas.height);
-                //ob.fillStyle = 'yellow';
-                //ob.fill();
-                //////////////////////////////////
-                //  changing what ob's selected
-                //////////////////////////////////
-                ob.select = function(){
-                    //// old selected
-                    if(selected_ob.style){
-                    selected_ob.hide_stars();
-                        selected_ob.style.borderWidth=1;
-                    }
-                    // zones
-                    if(selected_ob.zones)
-                        for (let ii=0;ii<selected_ob.zones.length;ii++){
-                            selected_ob.zones[ii].style.visibility="hidden";
-                    }
-                    //// new selected!!!
-                    selected_ob = this;
-                    selected_ob.show_stars();
-                    selected_ob.style.borderWidth=3;
-                    // zones
-                    for (let ii=0;ii<selected_ob.zones.length;ii++){
-                            selected_ob.zones[ii].style.visibility="visible";
-                    }
-
-                }
-                ob.hl = function(){
-                    if(hl_ob!=selected_ob && hl_ob.style){
-                      hl_ob.style.borderWidth=1;
-                      //console.log("some programmer round here is dum. dunno who.");
-                    }
-                    if(this.style && this!=selected_ob){
-                        this.style.borderWidth = 2;
-                    }
-                    hl_ob = this;
-                }
-                // griddle for the stars!
-                //TODO this doesn't need to happen
-                //let strrr = Star(ob);
-                //ob.stars = [strrr];
-                ob.stars=[];
-                // TODO: make logic for this!!!
-                // I don't remember what was meant by this and I don't care. Maybe u will.
-                ob.starmap = Griddle();
-                //ob.starmap.add(strrr.x,strrr.y,strrr.x+strrr.width,strrr.y+strrr.height,strrr);
-                //ob.current_star = strrr;
-                ob.current_star = null;
-                ob.new_star = function(){
-                    star = Star(this);
-                    star.x=x;
-                    star.y=y;
-                    star.rejig();
-                    this.stars.push(star);
-                    this.current_star=star;
-                    this.starmap.add(star.x,star.y,star.x+star.width,star.y+star.height,star);
-                }
-                ob.hide_stars = function(){
-                    for(let ii=0;ii<this.stars.length;ii++){
-                        this.stars[ii].hidden=true;
-                    }
-                }
-                ob.show_stars = function(){
-                    for(let ii=0;ii<this.stars.length;ii++){
-                        this.stars[ii].hidden=false;
-                    }
-                }
-                ob.select();
-                document.body.appendChild(ob);    
-                all_obs.push(ob);
-                return(ob)
-            }
-
-            Star = function(ob){
-                star = document.createElement("canvas");
-                star.ob = ob;
-                star.ob.current_star=star;
-                star.img = new Image;
-                star.style.position = 'absolute';
-                star.width=50;
-                star.height=50;
-                star.x = ob.x-star.width-10;
-                star.y = ob.y;
-                star.style.border='solid';
-                star.ctx=star.getContext('2d');
-                star.rejig = function(){
-                    this.style.left = this.x;
-                    this.style.top = this.y;
-                }
-                star.rejig();
-                star.update = function(){
-                    this.ob.toBlob((blob)=>{
-                        this.img.src=URL.createObjectURL(blob);
-                        this.img.onload=()=>{
-                            this.ctx.clearRect(0,0,this.width,this.height);
-                            let hr = this.ob.width/this.width;
-                            let wr = this.ob.height/this.height;
-                            // TODO: i didn't think hard enuf to make this good.
-                            let scale_ratio = hr>wr?hr:wr;
-                            let drwX=ob.width/scale_ratio;
-                            let drwY=ob.height/scale_ratio;
-                            for(let i=0;i<10;i++)
-                            this.ctx.drawImage(this.img,
-                                (this.width-drwX)/2+i/10,
-                                (this.width-drwY)/2+i/10,
-                                drwX,drwY);
-                        }
-                        });
-                    //TODO: delete old url?
-                }
-                star.restore = function(){
-                    this.ob.ctx.clearRect(0,0,this.ob.width,this.ob.height);
-                    this.ob.ctx.drawImage(this.img,0,0);
-                }
-                star.current=true;
-                star.make_current = function(){
-                    this.ob.current_star.current=false;
-                    this.ob.current_star=this;
-                    this.current=true;
-                    this.restore();
-                }
-                document.body.appendChild(star);
-                return(star);
-            }
-
-            /////////////////////////////
-            // end of objects
-            /////////////////////////////
-
-            ///////////////////////////
-            // begining of... not objects!
-            ///////////////////////////
-
-
-            // uhh, shouldn't some of this be in init? do we even need init? How does loading werk?
-            pencil_down = false;
-
-            window.get_closest = function(){
-                    let min = 190099;
-                    let closest = 0;
-                    // this is bad I guess... too much proc
-                    for(ii=0;ii<all_obs.length;ii++){
-                        let ib = all_obs[ii];
-                        let ic = Math.abs(x-parseInt(ib.style.left))
-                                +Math.abs(y-parseInt(ib.style.top));
-                        if( ic<min ){
-                            min = ic;
-                            closest = ii;
-                        }
-                    }
-                return(closest);
-            }
-            // it goes [0] is onclick and [1] is on move while clickd!!!
-            // Oh, don't forget [2] is just moving! Also I'm dum and so iz code liek this!
-                // no I don't know if this makes sense!
-            window.input_fun={
-                'movin_menu':[
-                    function(e){},
-                    function(e){
-                        menu.style.left=parseInt(menu.style.left)+dx;
-                        menu.style.top=parseInt(menu.style.top)+dy;
-                    },
-                    function(e){},
-                ],
-                'move':[
-                    function(e){
-                        e.preventDefault();
-                        // move center to cursor
-                        closest = get_closest();
-                        all_obs[closest].select();
-                    },
-                    function(e){
-                        // move by dx & dy
-                        selected_ob.move(dx,dy);
-                    },
-                    function(e){
-                        closest = get_closest();
-                        all_obs[closest].hl();
-                                // wrong algorithm!!! thats for inside of!!!
-                                //x>ib.left &&
-                                //x<ib.left+ib.width &&
-                                //y>ib.top &&
-                                //y<ib.top+ib.height
-
-                    },
-                ],
-                'draw':[
-                    function(e){
-                        e.preventDefault();
-                        if(x<selected_ob.x || x>selected_ob.x+selected_ob.width||
-                           y<selected_ob.y || y>selected_ob.y+selected_ob.height){
-                            //TODO: this should be creating the creation of a star!!!
-                            // PART OF A BEAUTIFUL CONSTELLATION!
-                            // NAWT A TRIG!
-                        //Trig(selected_ob);
-
-                        stars_in_tha_skyyyy=selected_ob.starmap.wut_zones(x,y);
-                        console.log("hi");
-                            console.log(stars_in_tha_skyyyy);
-                        if(stars_in_tha_skyyyy.length > 0){
-                            stars_in_tha_skyyyy[0].make_current();
-                        }else{
-                            selected_ob.new_star();
-                        }
-                            // TODO: why is indentation broken here???
-                    }
-
-                },
-                function(e){
-                    drwrlineee(selected_ob,lastx,lasty,x,y);
-                },
-                function(e){},
-            ],
-            'new':[
-                function(e){
-                    e.preventDefault();
-                    newob = Ob(selected_ob);
-                },
-                function(e){
-                    // resize during creation
-                    selected_ob.width+=dx;
-                    selected_ob.height+=dy;
-                },
-                function(e){},
-            ],
-            'zone':[
-                function(e){ //click
-                    e.preventDefault();
-                    Zone(selected_ob);
-                },
-                function(e){ //drag
-                    e.preventDefault();
-                    drwrzonee(selected_ob,lastx,lasty,x,y);
-                },
-                function(e){ //move
-                },
-            ],
-            'trig':[
-                function(e){ //click
-                    e.preventDefault();
-                    Trig(selected_ob);
-                },
-                function(e){ //drag
-                    e.preventDefault();
-                },
-                function(e){ //move
-                },
-            ],
-            'trash':[
-                function(e){ //click
-                    // i dunno if this really makes sense
-                    e.preventDefault();
-                    alert("This doesnt do anything yet");
-                },
-                function(e){ //drag
-                    e.preventDefault();
-                },
-                function(e){ //move
-                },
-            ],
+function Tock(ob,fromStar,toStar){
+    tock = new Object();
+    tock.ob = ob;
+    tock.fromStar = fromStar;
+    tock.toStar = toStar;
+    tock.tock = function(){
+        this.toStar.make_current()
+    }
+    return(tock)
+}
+function Tick(zone,trig,exit){
+    tick = new Object();
+    tick.exit = exit;
+    tick.zone = zone;
+    tick.trig = trig;
+    tick.tocks = [];
+    tick.tick = function(){
+        for (let ii=0;ii<this.tocks.length;ii++){
+            this.tocks[ii].tock()
         }
-        window.onmousedown=function(e){
-            toolz = ['move','draw','new','zone','trig','trash'];
-            menux=parseInt(menu.style.left);
-            menuy=parseInt(menu.style.top);
-            if(x>menux && x<menux+menu.width){
-                if(y>menuy){
-                    if(y< menuy+10){
-                        pencil_down=true;
-                        last_input_mode = input_mode;
-                        input_mode = 'movin_menu';
-                    }else{
-                        for(i=toolz.length-1;i>=0;i--){
-                            if(y<menuy+(i+1)*40){ //TODO: probz don't hardcode this
-                                let old_mode = input_mode;
-                                input_mode = toolz[i]
-
-                           //   if(old_mode == "draw" && input_mode != "draw"){
-                           //       //suck it life!
-                           //       selected_ob.hide_stars();
-                           //   }
-                           //   if(old_mode != "draw" && input_mode == "draw"){
-                           //       //suck it life!
-                           //       selected_ob.show_stars();
-                           //   }
-
-                                // move the dum tool selectorb
-                                menuhl.y.baseVal.value=5+i*40;
-                            }
-                        }
-                    }
-                }
-                console.log(input_mode);
+    }
+    tick.add_tock = function(tock){
+        this.tocks.push(tock);
+    }
+    tick.rem_tock = function(tock){
+        for (let ii=0;ii<this.tocks.length;ii++){
+            if(this.tocks[ii]==tock){
+                this.tocks.splice(ii,1);
+            }
+        }
+    }
+    return(tick)
+}
+ticks={};
+function getTick(zone,trig,exit){
+    if(ticks[zone]){
+        if(ticks[zone][trig]){
+            if(ticks[zone][trig][exit]){
+                return(ticks[zone][trig][exit]);
             }else{
-                pencil_down=true;
-                input_fun[input_mode][0](e);
+                ticks[zone][trig][exit] = Tick(zone,trig,exit);
+                return(ticks[zone][trig][exit]);
             }
-            firstx = x;
-            firsty = y;
+        }else{
+            ticks[zone][trig] = {};
+            ticks[zone][trig][exit] = Tick(zone,trig,exit);
+            return(ticks[zone][trig][exit]);
         }
-        window.onmouseup=function(e){
-            if(input_mode=='movin_menu'){
-                input_mode=last_input_mode;
+    }else{
+        ticks[zone]={};
+        ticks[zone][trig] = {};
+        ticks[zone][trig][exit] = Tick(zone,trig,exit);
+        return(ticks[zone][trig][exit]);
+    }
+}
+
+function Griddle(){
+    griddle = new Object(); //hha, wut does new even mean?
+    griddle.xlims=[];
+    griddle.ylims=[];
+    griddle._add = function(smol,larg,cuts,zone){
+        let innit = false;
+        // check for smol b4 the rest
+        if(cuts.length==0){
+            cuts.push([smol,[zone]]);
+            cuts.push([larg,[]]);
+        }else{
+            if(smol<cuts[0][0]){
+                // cause there isn't already a cut b4 the first cut
+                cuts.splice(0,0,[smol,[zone]]);
+                innit = true;
+            }else if(smol==cuts[0][0]){
+                cuts[0][1].push(zone);
+                innit = true;
             }
-            else if(input_mode=='zone' && pencil_down){
-                //this is so bad
-                drwrzonee(selected_ob,x,y,firstx,firsty);//TODO:make this get the obj it needs or not, cause just pencil tool.
-                let zone = selected_ob.zones[selected_ob.zones.length-1];// hahahahahah
-                mcgriddle.add(zone.xxx,zone.yyy,zone.xxx+zone.www,zone.yyy+zone.hhh,zone); // that input scheme u thought up is so bad.
-                                                                                        // u gotta kill & fix it
-                //drwrlineee(canvas,lastx,lasty,firstx,firsty);//TODO:make this get the obj it needs or not, cause just pencil tool.
-            }
-            else if(input_mode=='draw'){
-                //so so bad
-                if(selected_ob.current_star){
-                    selected_ob.current_star.update();
+            for (let ii=1;ii<cuts.length;ii++){
+                //fuck readability [0] is the xcoordinate. talk to author if u wanna understand shit
+                //eet my cnt
+                if(innit){
+                    if(larg>cuts[ii][0]){
+                        //put
+                        cuts[ii][1].push(zone);
+                    }else if(larg==cuts[ii][0]){
+                        break;
+                    }else{
+                        //new
+                        koopa = [...cuts[ii-1][1]];
+                        troopa = [larg,koopa];
+                        cuts.splice(ii,0,troopa);
+                        //delete zone from this range
+                        cuts[ii][1].pop();// we shud reasonably kno it only appears in
+                                                // that one spot we just added, so don't do
+                                                // the below flibbidy bibbidy.
+                       // for(let jj=0;jj<cuts[ii].length;jj++){//sick index names dude!
+                       //     if(cuts[ii][1][jj]==zone){
+                       //         cuts[ii][1].splice(jj,1);
+                       //     }
+                       // }
+                        break;
+                    }
+                }else{//by elimination, this is NOT INNIT!!!
+                    // add ob to existing or new range
+                    if(smol==cuts[ii][0]){
+                        //put
+                        cuts[ii][1].push(zone);
+                        innit = true;
+                    }else if(smol<cuts[ii][0]){
+                        //new
+                        let new_cut = [smol,[...cuts[ii-1][1], zone]];
+                        // this adds one to the length of the xlims
+                        // but doesn't add one to are index@!?!?
+                        // Isn't that a problme u ask!? NO!
+                        // U see, we need to check this one again
+                        // checking it for the end of the new zone!
+                        // now u see!^^
+                        cuts.splice(ii,0,new_cut);
+                        innit = true;
+                    }//else do nuthing u fuk
                 }
             }
-            pencil_down = false;
-        }
-        ////////////////
-        // init function
-        ////////////////
-        window.onload=function(){
-            console.warn("Shut up! It doesn't contain any text at all!")
-
-            window.all_obs = [];
-            var w = window.innerWidth;
-            var h = window.innerHeight;
-            // fuck the canvas right up fukkkkkkk uuuuuuuuu
-            var canvas = document.getElementById('canvas');
-            canvas.style.position = 'absolute';
-            canvas.style.left = '0px';
-            canvas.style.top = '0px';
-
-            // tool menu
-            window.menu = document.createElement("img");
-            menu.style.position = 'absolute';
-            menu.style.left=10;
-            menu.style.top =10;
-            menu.src = "toolbar2.png";
-            menu.onmousedown=function(e){e.preventDefault()};
-            document.body.appendChild(menu);
-            window.input_mode = 'move';
-
-            // custom cursorz r coool!
-            //document.body.style.cursor = "crosshair"
-            document.body.style.cursor = "none";//window.menu;
-            window.cursor = document.createElement("img");
-            cursor.style.position = 'absolute';
-            cursor.src = "cursor.png";
-            document.body.appendChild(cursor);
-
-            // menu for events!
-            eventMenu = document.createElement("div");
-            eventMenu.style.background="red";
-            eventMenu.style.cursor="default";
-            eventMenu.style.position = 'absolute';
-            eventMenu.style.left=10;
-            eventMenu.style.top=360;
-            eventMenu.style.width=70;
-            eventMenu.style.height=300;
-            eventMenu.style.border='solid';
-            eventMenu.style.borderWidth=2;
-            eventMenu.style.overflow='scroll';
-            document.body.appendChild(eventMenu);
-            dickitysnack = document.createElement("div");
-            dickitysnack.style.width=50;
-            dickitysnack.innerHTML="200ms 4s <> <> <> >< >< >< <> >< <> <> <> <> >< >< >< <> >< <> >< >< >< <> >< >< >< >< <> >< <> >< >< >< <> >< <> >< >< >< <> >< <> >< >< >< <> >< <> >< >< >< <> >< <> >< >< >< <> >< <> >< >< >< <> >< <> >< >< >< <> >< <> >< >< >< <> >< <> <> >< >< >< <> >< <>" ;
-            eventMenu.appendChild(dickitysnack);
-
-            fuck_you=10;
-            canvas.width=window.innerWidth-fuck_you;
-            canvas.height=window.innerHeight-fuck_you;
-            window.ctx = canvas.getContext('2d');
-            ctx.beginPath();
-            ctx.rect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'red';
-            ctx.fill();
-            //drwrlineee(canvas,51,51,300,80);
-            window.x=100;
-            window.y=30;
-            window.dx=0;
-            window.dy=0;
-            window.firstx=0;
-            window.firsty=0;
-            window.lastx=0;
-            window.lasty=0;
-
-            window.selected_ob = 'boobs';
-            window.hl_ob = 'dickz';
-            testob = Ob();
-            window.ctx = testob.ctx;
-
-            window.svglayer = document.getElementById("svglayer");
-            svglayer.width.baseVal.value=window.innerWidth - fuck_you;
-            svglayer.height.baseVal.value=window.innerHeight - fuck_you;
-            window.menuhl = document.getElementById("menuhl");
-            menuhl.x.baseVal.value=5;
-            menuhl.y.baseVal.value=5;
-            window.liner = document.getElementById("liner");
-            liner.x1.baseVal.value= 1;
-            liner.y1.baseVal.value= 1;
-            liner.x2.baseVal.value= 2;
-            liner.y2.baseVal.value= 2;
-            //foo = liner.cloneNode();
-            //svglayer.appendChild(foo);
-        }
-        function drwrlineee(ob,x1,y1,x2,y2){
-            ctxxx = ob.getContext('2d');
-            ctxxx.beginPath();
-            ctxxx.moveTo(x1-ob.style.left.slice(0,-2),y1-ob.style.top.slice(0,-2));
-            ctxxx.lineTo(x2-ob.style.left.slice(0,-2),y2-ob.style.top.slice(0,-2));
-            ctxxx.stroke();
-        }
-        function drwrzonee(ob,x1,y1,x2,y2){
-            foo = liner.cloneNode();
-            zoo = ob.zones[ob.zones.length-1];
-            zoo.appendChild(foo);
-            foo.x1.baseVal.value = x1 - zoo.xxx;
-            foo.y1.baseVal.value = y1 - zoo.yyy;
-            foo.x2.baseVal.value = x2 - zoo.xxx;
-            foo.y2.baseVal.value = y2 - zoo.yyy;
-            // resize if drawing outside
-            if(x2>zoo.xxx+zoo.www){
-                zoo.www = x2-zoo.xxx;
-                zoo.resize();
-            }else if (x2<zoo.xxx){
-                zoo.www += zoo.xxx-x2;
-                zoo.resize();
-                zoo.movelines(zoo.xxx-x2,0);
-                zoo.xxx = x2;
-                zoo.rejig();
+            if(!innit){//smol>cuts[cuts.length-1])
+                    // it's already there
+                //cuts[cuts.length-1][1].push(zone);
+                cuts.push([smol,[zone]]);
+                cuts.push([larg,[]]);
+            }else if(larg>cuts[cuts.length-1][0]){
+                    // it's already there
+                //cuts[cuts.length-1][1].push(zone);
+                cuts.push([larg,[]]);
             }
-            if(y2>zoo.yyy+zoo.hhh){
-                zoo.hhh = y2-zoo.yyy;
-                zoo.resize();
-            }else if (y2<zoo.yyy){
-                zoo.hhh += zoo.yyy-y2;
-                zoo.resize();
-                zoo.movelines(0,zoo.yyy-y2);
-                zoo.yyy = y2;
-                zoo.rejig();
+        }
+    }
+    griddle.add = function(x1,y1,x2,y2,zone){
+        this._add(x1,x2,this.xlims,zone);
+        this._add(y1,y2,this.ylims,zone);
+    }
+    griddle._del = function(smol,larg,cuts,zone){
+        // ourder
+        let innit = false;
+        for (let ii=0;  ii<cuts.length && cuts.length>0;  ii++){
+            //fuck readability [0] is the xcoordinate. talk to author if u wanna understand shit
+            if(innit){
+                // TODO: deduplicate shit in this algorithmmm
+                //remove zone from cut
+                for(let jj=0;jj<cuts[ii][1].length;jj++){//good index names bro
+                    if(cuts[ii][1][jj]==zone){
+                        //do the splice!
+                        cuts[ii][1].splice(jj,1);
+                        jj--;
+                    }
+                }
+                //see if we're at the end
+                if(cuts[ii][0]==larg){
+                    //remove cut if applickableh
+                    // This will happen on the first and last...
+                    /// but only almost all of the time!
+                    // TODO: is this more general than need be?
+                    if (ii==0){
+                        if(cuts[ii][1].length == 0){
+                            cuts.splice(ii,1);// almost impossible for this to happen right?
+                                            // but not impossible right?
+                                        // still, you'd have to be implementing some bullshizz for
+                                    // it to ever be relevent
+                                // but fuck it it werkz so ehhhhhhhhhhh.........
+                        }
+                    }else if(cuts[ii][1].length == cuts[ii-1][1].length ){
+                        let samlish = true;
+                        for(let jj=0;jj<cuts[ii][1].length;jj++){//i'm unfin' over those index names
+                            if(cuts[ii][1][jj] != cuts[ii-1][1][jj]){
+                                samlish=false;
+                                break;// this break we kno they ain't same..
+                            }// write more code than the other language to keep fresh!
+                        }
+                        if(samlish){
+                            cuts.splice(ii,1);
+                        }
+                    }
+                    break;// this break is cauze we done the zone
+                }
+            }else{
+                //look for start if u kno wut i mean
+                if(cuts[ii][0]==smol){
+                    innit=true;
+                    //remove zone from cut
+                    for(let jj=0;jj<cuts[ii][1].length;jj++){//good index names bro
+                        if(cuts[ii][1][jj]==zone){
+                            //do the splice!
+                            cuts[ii][1].splice(jj,1);
+                            jj--;
+                        }
+                    }
+                    //remove cut if applickableh
+                    // This will happen on the first and last...
+                    /// but only almost all of the time!
+                    if (ii==0){
+                        if(cuts[ii][1].length == 0){
+                            cuts.splice(ii,1);
+                            ii--;
+                        }
+                    }else if(cuts[ii][1].length == cuts[ii-1][1].length ){
+                        let samlish = true;
+                        for(let jj=0;jj<cuts[ii][1].length;jj++){//i'm unfin' over those index names
+                            if(cuts[ii][1][jj] != cuts[ii-1][1][jj]){
+                                samlish=false;
+                                break;
+                            }// write more code than the other language to keep fresh!
+                        }
+                        if(samlish){
+                            cuts.splice(ii,1);
+                            ii--;
+                        }
+                    }
+                }
+            }
+        }/// yeah nested shit is kinky!
+    }
+    griddle.del = function(x1,y1,x2,y2,zone){
+        this._del(x1,x2,this.xlims,zone);
+        this._del(y1,y2,this.ylims,zone);
+    }
+    griddle.wut_zones = function(xpos, ypos){
+        // returns the zones sorted order?
+        let xs = [];
+        if(this.xlims.length>0 && xpos>=this.xlims[0][0]){
+            for (let ii=1; ii<this.xlims.length; ii++){
+                if(xpos<this.xlims[ii][0]){
+                    xs = this.xlims[ii-1][1];
+                    break;
+                }
+            }
+        }
+        let ys = [];
+        if(this.xlims.length>0 && ypos>=this.ylims[0][0]){
+            for (let ii=1; ii<this.ylims.length; ii++){
+                if(ypos<this.ylims[ii][0]){
+                    ys = this.ylims[ii-1][1];
+                    break;
+                }
+            }
+        }
+        let innn = [];
+        for(let ii=0; ii<xs.length; ii++){
+            for(let jj=0; jj<ys.length; jj++){
+                //TODO: this could be more efficient
+                if(xs[ii]==ys[jj]){
+                    innn.push(xs[ii]);
+                    break;
+                }
+            }
+        }
+        return(innn);
+    }
+    return griddle;
+}
+window.mcgriddle = Griddle();
+window.freshest_id = 0;
+function get_childz(ob){
+        ob.x += xchange;
+        ob.y += ychange;
+        ob.rejig();
+        for (ii=0;ii<ob.babbs.length;ii++){
+            move_ob(ob.babbs[ii],xchange,ychange);
+        }
+}
+window.trigs=[];
+function Trig(ob){
+    trig = document.createElement("div");
+    trig.innerHTML="*";
+    trig.style.position = 'absolute';
+    trig.x = x;
+    trig.y = y;
+    trig.rejig = function(){
+        this.style.left = this.x-2;
+        this.style.top = this.y-4;
+    };
+    trig.rejig();
+    document.body.appendChild(trig);
+    ob.trigs.push(trig);
+    trigs.push(trig);
+    trig.move = function(xchange,ychange){
+        // TODO: OH NO!!! It's looping through all trigs and looking at each trig, how did I not notice... I am dum
+        for(let ii=0; ii<trigs.length; ii++){
+            if(trigs[ii]==trig){
+                trigs.splice(ii,1);//remove
+                ii--;//TODO: this shouldn't be needed, every trig is here once.
+            }
+        }
+        this.x += xchange;
+        this.y += ychange;
+        this.rejig();
+        trigs.push(trig); /// TODO: wait, wut does this even do? trigs should always have all trigs???
+
+        //compare zones
+        let zones_lost = [...this.in_the_zone];
+        this.in_the_zone = mcgriddle.wut_zones(this.x,this.y);// freshen this trigs zones!
+        let zones_gained = [...this.in_the_zone];
+
+        let lostii=0;
+        let nuii=0;
+        while (lostii<zones_lost.length){
+            if (zones_lost[lostii]==zones_gained[nuii]){
+                zones_lost.splice(lostii,1);
+                zones_gained.splice(nuii,1);
+            }else{
+                nuii++;
+            }
+            if (nuii>=zones_gained.length){// greater than for the edge case where there are no nu zones
+                nuii=0;
+                lostii++;
+            }
+        }
+
+        let samlish = true;
+        if(zones_lost.length>0){
+            samlish=false;
+            //do something with events?
+            for (let ii=0; ii<zones_lost.length; ii++){
+                let tick = getTick(zones_lost[ii],this,true);
+                eventMenu.add_tick(tick);
+                tick.tick();
+            }
+        }
+        if(zones_gained.length>0){
+            samlish=false;
+            //do something with events?
+            for (let ii=0; ii<zones_gained.length; ii++){
+                let tick = getTick(zones_gained[ii],this,false);
+                eventMenu.add_tick(tick);
+                tick.tick();
+            }
+        }
+        
+        // old algorithm that only cared about if it changed, not how
+       // let samlish = false;
+       // if(nu_zones.length == this.in_the_zone.length ){
+       //     samlish = true;
+       //     for(let jj=0;jj<nu_zones.length;jj++){//i'm unfin' over those index names
+       //         if(nu_zones[jj] != this.in_the_zone[jj]){
+       //             samlish=false;
+       //             break;// this break we kno they ain't same..
+       //         }// write more code than the other language to keep fresh!
+       //     }
+       // }
+        if(!samlish){
+            this.init_duck_fucking();
+        }
+    }
+    trig.titilation = 0;
+    trig.aroused = false;
+    trig.init_duck_fucking = function(){
+        this.titilation = 3;
+        if(!this.aroused){
+            this.style.color="yellow";
+            this.aroused=true;
+            this.fuck_a_duck(this);
+        }
+    }
+    trig.fuck_a_duck = function(fck){
+        fck.titilation--;
+        if(fck.titilation==0){
+            fck.style.color="black";
+            fck.aroused=false;
+        }else{
+            setTimeout(fck.fuck_a_duck, 100, fck);
+        }// I'm sorry u had to witness this... why r u even tho?
+    }
+    trig.in_the_zone = mcgriddle.wut_zones(this.x,this.y);
+}
+function Zone(ob){
+    zone = svglayer.cloneNode();// fuck how do you create svg
+    zone.xxx = x;
+    zone.yyy = y;
+    zone.www = 10;
+    zone.hhh = 10;
+    zone.rejig = function(){
+        this.style.left = this.xxx;
+        this.style.top = this.yyy;
+    }
+    // ahhhhhhhhhhhhhhhhhhhhhh
+    // btdubz this is used for changing size while drawin zone
+    //    and NAWT used for moving the zone!
+    zone.movelines = function(xchange,ychange){
+        boobs = this.getElementsByTagName("line");
+        for (let ii=0;ii<boobs.length;ii++){
+            boobs[ii].x1.baseVal.value += xchange;
+            boobs[ii].x2.baseVal.value += xchange;
+            boobs[ii].y1.baseVal.value += ychange;
+            boobs[ii].y2.baseVal.value += ychange;
+        }
+        
+    }
+    zone.resize = function(){
+        this.style.height = this.hhh;
+        this.style.width = this.www;
+    }
+    zone.resize();
+    zone.rejig();
+    ob.zones.push(zone);
+    document.body.appendChild(zone);
+    zone.move = function(xchange,ychange){
+        mcgriddle.del(this.xxx,this.yyy,this.xxx+this.www,this.yyy+this.hhh,this);
+        this.xxx = this.xxx+xchange;
+        this.yyy = this.yyy+ychange;
+        this.rejig();
+        mcgriddle.add(this.xxx,this.yyy,this.xxx+this.www,this.yyy+this.hhh,this);
+    }
+}
+function Ob(mom){
+    ob = document.createElement("canvas");
+    ob.style.position = 'absolute';
+    ob.x = x;
+    ob.y = y;
+    ob.width=10;
+    ob.height=10;
+    ob.id=freshest_id++;
+    ob.liner = liner.cloneNode();
+    svglayer.appendChild(ob.liner);
+    ob.rejig = function(){
+        this.style.left = this.x;
+        this.style.top = this.y;
+            this.liner.x1.baseVal.value= this.x;
+            this.liner.y1.baseVal.value= this.y;
+            if(this.mom){
+                this.liner.x2.baseVal.value = this.mom.x;
+                this.liner.y2.baseVal.value = this.mom.y;
+            } else {
+                this.liner.x2.baseVal.value = 0;
+                this.liner.y2.baseVal.value = 0;
             }
 
+    };
+    ob.style.border='dashed';
+    ob.ctx=ob.getContext('2d');
+    if(mom){// there should only be one object without a mom.
+        ob.mom = mom;
+        mom.babbs.push(ob);
+    }
+    ob.rejig();
+    ob.zones = [];
+    ob.trigs = [];
+    ob.babbs = [];
+    ob.move = function(xchange,ychange){
+        this.x += xchange;
+        this.y += ychange;
+        this.rejig();
+        for (let ii=0;ii<this.babbs.length;ii++){
+            this.babbs[ii].move(xchange,ychange);
         }
-        // this is neat... delete it!!!!!
-        function move(){
-              bx = document.getElementById("box");
-
-              hereXstr = bx.style.left;//.slice(0,bx.style.left.length-2);
-              hereXstr.replace("px","");
-              hereX = parseInt(hereXstr);
-
-              hereYstr = bx.style.top;
-              hereYstr.replace("px","");
-              hereY = parseInt(hereYstr);
-
-              thereX = x;
-              thereY = y;
-
-              newX = (4*hereX+thereX)/5;
-              newY = (4*hereY+thereY)/5;
-	      	  bx.style.left = newX;
-	      	  bx.style.top = newY;
-
-              if(Math.abs(thereX-hereX)>7 || Math.abs(thereY-hereY)>7)
-                  doing = 1;
-                  //setTimeout(function(){move(x,y);}, 100);
+        for (let ii=0;ii<this.zones.length;ii++){
+            this.zones[ii].move(xchange,ychange);
         }
-        trig=null;
-		function m(e){
-     //       if(goobable){
-      //          goobable = false;
-                lastx = x;
-                lasty = y;
-                x = e.pageX;
-                y = e.pageY;
-                dx = x-lastx;
-                dy = y-lasty;
-                if(pencil_down){
-                    input_fun[input_mode][1](e);
+        for (let ii=0;ii<this.trigs.length;ii++){
+            this.trigs[ii].move(xchange,ychange);
+        }
+    };
+
+    //ob.beginPath();
+    //ob.rect(0, 0, canvas.width, canvas.height);
+    //ob.fillStyle = 'yellow';
+    //ob.fill();
+    //////////////////////////////////
+    //  changing what ob's selected
+    //////////////////////////////////
+    ob.select = function(){
+        //// old selected
+        if(selected_ob.style){
+        selected_ob.hide_stars();
+            selected_ob.style.borderWidth=1;
+        }
+        // zones
+        if(selected_ob.zones)
+            for (let ii=0;ii<selected_ob.zones.length;ii++){
+                selected_ob.zones[ii].style.visibility="hidden";
+        }
+        //// new selected!!!
+        selected_ob = this;
+        selected_ob.show_stars();
+        selected_ob.style.borderWidth=3;
+        // zones
+        for (let ii=0;ii<selected_ob.zones.length;ii++){
+                selected_ob.zones[ii].style.visibility="visible";
+        }
+
+    }
+    ob.hl = function(){
+        if(hl_ob!=selected_ob && hl_ob.style){
+          hl_ob.style.borderWidth=1;
+          //console.log("some programmer round here is dum. dunno who.");
+        }
+        if(this.style && this!=selected_ob){
+            this.style.borderWidth = 2;
+        }
+        hl_ob = this;
+    }
+    // griddle for the stars!
+    //TODO this doesn't need to happen
+    //let strrr = Star(ob);
+    //ob.stars = [strrr];
+    ob.stars=[];
+    // TODO: make logic for this!!!
+    // I don't remember what was meant by this and I don't care. Maybe u will.
+    ob.starmap = Griddle();
+    //ob.starmap.add(strrr.x,strrr.y,strrr.x+strrr.width,strrr.y+strrr.height,strrr);
+    //ob.current_star = strrr;
+    ob.current_star = null;
+    ob.new_star = function(){
+        star = Star(this);
+        star.x=x;
+        star.y=y;
+        star.rejig();
+        this.stars.push(star);
+        this.current_star=star;
+        this.starmap.add(star.x,star.y,star.x+star.width,star.y+star.height,star);
+    }
+    ob.hide_stars = function(){
+        for(let ii=0;ii<this.stars.length;ii++){
+            this.stars[ii].hidden=true;
+        }
+    }
+    ob.show_stars = function(){
+        for(let ii=0;ii<this.stars.length;ii++){
+            this.stars[ii].hidden=false;
+        }
+    }
+    ob.select();
+    document.body.appendChild(ob);    
+    all_obs.push(ob);
+    return(ob)
+}
+
+Star = function(ob){
+    star = document.createElement("canvas");
+    star.ob = ob;
+    star.ob.current_star=star;
+    star.img = new Image;
+    star.style.position = 'absolute';
+    star.width=50;
+    star.height=50;
+    star.x = ob.x-star.width-10;
+    star.y = ob.y;
+    star.style.border='solid';
+    star.ctx=star.getContext('2d');
+    star.rejig = function(){
+        this.style.left = this.x;
+        this.style.top = this.y;
+    }
+    star.rejig();
+    star.update = function(){
+        this.ob.toBlob((blob)=>{
+            this.img.src=URL.createObjectURL(blob);
+            this.img.onload=()=>{
+                this.ctx.clearRect(0,0,this.width,this.height);
+                let hr = this.ob.width/this.width;
+                let wr = this.ob.height/this.height;
+                // TODO: i didn't think hard enuf to make this good.
+                let scale_ratio = hr>wr?hr:wr;
+                let drwX=ob.width/scale_ratio;
+                let drwY=ob.height/scale_ratio;
+                for(let i=0;i<10;i++)
+                this.ctx.drawImage(this.img,
+                    (this.width-drwX)/2+i/10,
+                    (this.width-drwY)/2+i/10,
+                    drwX,drwY);
+            }
+            });
+        //TODO: delete old url?
+    }
+    star.restore = function(){
+        this.ob.ctx.clearRect(0,0,this.ob.width,this.ob.height);
+        this.ob.ctx.drawImage(this.img,0,0);
+    }
+    star.current=true;
+    star.time_tick = null;
+    star.make_current = function(){
+        if(this.time_tick){
+            time_tick.set();
+        }
+        this.ob.current_star.current=false;
+        this.ob.current_star=this;
+        this.current=true;
+        this.restore();
+    }
+    document.body.appendChild(star);
+    return(star);
+}
+
+/////////////////////////////
+// end of objects
+/////////////////////////////
+
+///////////////////////////
+// begining of... not objects!
+///////////////////////////
+
+
+// uhh, shouldn't some of this be in init? do we even need init? How does loading werk?
+pencil_down = false;
+
+window.get_closest = function(){
+        let min = 190099;
+        let closest = 0;
+        // this is bad I guess... too much proc
+        for(ii=0;ii<all_obs.length;ii++){
+            let ib = all_obs[ii];
+            let ic = Math.abs(x-parseInt(ib.style.left))
+                    +Math.abs(y-parseInt(ib.style.top));
+            if( ic<min ){
+                min = ic;
+                closest = ii;
+            }
+        }
+    return(closest);
+}
+// it goes [0] is onclick and [1] is on move while clickd!!!
+// Oh, don't forget [2] is just moving! Also I'm dum and so iz code liek this!
+    // no I don't know if this makes sense!
+//
+// TODO: remove all of this and just use a big ugly event parse tree
+//
+window.input_fun={
+    'ticktock':[
+        function(e){},
+        function(e){},
+        function(e){},
+    ],
+    'movin_menu':[
+        function(e){},
+        function(e){
+            menu.style.left=parseInt(menu.style.left)+dx;
+            menu.style.top=parseInt(menu.style.top)+dy;
+        },
+        function(e){},
+    ],
+    'move':[
+        function(e){
+            e.preventDefault();
+            // move center to cursor
+            closest = get_closest();
+            all_obs[closest].select();
+        },
+        function(e){
+            // move by dx & dy
+            selected_ob.move(dx,dy);
+        },
+        function(e){
+            closest = get_closest();
+            all_obs[closest].hl();
+                    // wrong algorithm!!! thats for inside of!!!
+                    //x>ib.left &&
+                    //x<ib.left+ib.width &&
+                    //y>ib.top &&
+                    //y<ib.top+ib.height
+
+        },
+    ],
+    'draw':[
+        function(e){
+            e.preventDefault();
+            if(x<selected_ob.x || x>selected_ob.x+selected_ob.width||
+               y<selected_ob.y || y>selected_ob.y+selected_ob.height){
+                //TODO: this should be creating the creation of a star!!!
+                // PART OF A BEAUTIFUL CONSTELLATION!
+                // NAWT A TRIG!
+                //Trig(selected_ob);
+
+                stars_in_tha_skyyyy=selected_ob.starmap.wut_zones(x,y);
+                console.log("hi");
+                console.log(stars_in_tha_skyyyy);
+                if(stars_in_tha_skyyyy.length > 0){
+                    stars_in_tha_skyyyy[0].make_current();
                 }else{
-                    input_fun[input_mode][2](e);
+                    selected_ob.new_star();
                 }
-            //move cursor
-                cursor.style.top = y;
-                cursor.style.left = x;
-       //     } // goobable was a dum idea.
-		}
-     // window.goobable = false;
-     // function goob(){
-     //     goobable = true;
-     // }
-     //   window.setInterval(goob, 100);// doesn't even help with the multi babb issue.
-	</script>
-	</head>
-	<body>
-        <canvas id="canvas"></canvas>
-        <svg id="svglayer" width="400" height="1000" style="position:absolute">
-          <rect id="menuhl" x=100 y=100 width="38" height="38" style="fill:rgb(2550,100,100);stroke-width:4;stroke:rgb(0,0,0)" />
-          <line id="liner" x1="0" y1="0" x2="300" y2="300" style="stroke:rgb(255,255,255);stroke-width:2" />
-        </svg>
-	</body>
+            }
+
+        },
+        function(e){
+            drwrlineee(selected_ob,lastx,lasty,x,y);
+        },
+        function(e){},
+    ],
+    'new':[
+        function(e){
+            e.preventDefault();
+            newob = Ob(selected_ob);
+        },
+        function(e){
+            // resize during creation
+            selected_ob.width+=dx;
+            selected_ob.height+=dy;
+        },
+        function(e){},
+    ],
+    'zone':[
+        function(e){ //click
+            e.preventDefault();
+            Zone(selected_ob);
+        },
+        function(e){ //drag
+            e.preventDefault();
+            drwrzonee(selected_ob,lastx,lasty,x,y);
+        },
+        function(e){ //move
+        },
+    ],
+    'trig':[
+        function(e){ //click
+            e.preventDefault();
+            Trig(selected_ob);
+        },
+        function(e){ //drag
+            e.preventDefault();
+        },
+        function(e){ //move
+        },
+    ],
+    'trash':[
+        function(e){ //click
+            // i dunno if this really makes sense
+            e.preventDefault();
+            alert("This doesnt do anything yet");
+        },
+        function(e){ //drag
+            e.preventDefault();
+        },
+        function(e){ //move
+        },
+    ],
+}
+window.onmousedown=function(e){
+    toolz = ['move','draw','new','zone','trig','trash'];
+    menux=parseInt(menu.style.left);
+    menuy=parseInt(menu.style.top);
+    if( input_mode == 'ticktock' ){
+        // over a star of the selected ob
+        let stars_in_tha_skyyyy=selected_ob.starmap.wut_zones(x,y);
+        if(stars_in_tha_skyyyy){
+            tocking_fromStar = stars_in_tha_skyyyy[0];
+        }else{
+            input_mode = last_input_mode;
+        }
+    }else if(x>menux && x<menux+menu.width){
+        if(y>menuy){
+            if(y< menuy+10){
+                pencil_down=true;
+                last_input_mode = input_mode;
+                input_mode = 'movin_menu';
+            }else{
+                for(i=toolz.length-1;i>=0;i--){
+                    if(y<menuy+(i+1)*40){ //TODO: probz don't hardcode this
+                        let old_mode = input_mode;
+                        input_mode = toolz[i]
+
+                   //   if(old_mode == "draw" && input_mode != "draw"){
+                   //       //suck it life!
+                   //       selected_ob.hide_stars();
+                   //   }
+                   //   if(old_mode != "draw" && input_mode == "draw"){
+                   //       //suck it life!
+                   //       selected_ob.show_stars();
+                   //   }
+
+                        // move the dum tool selectorb
+                        menuhl.y.baseVal.value=5+i*40;
+                    }
+                }
+            }
+        }
+        console.log(input_mode);
+    }else{
+        pencil_down=true;
+        input_fun[input_mode][0](e);
+    }
+    firstx = x;
+    firsty = y;
+}
+window.onmouseup=function(e){
+    if( input_mode == 'ticktock' ){
+        // over a star of the selected ob
+        let stars_in_tha_skyyyy=selected_ob.starmap.wut_zones(x,y);
+        if(stars_in_tha_skyyyy){
+            // Make new tick!!!
+            //tocking_fromStar = stars_in_tha_skyyyy[0];
+            tocking_tick.add_tock(
+                Tock(
+                    selected_ob,
+                    tocking_fromStar,
+                    stars_in_tha_skyyyy[0]  ));
+        }
+        input_mode = last_input_mode;
+    }else if(input_mode=='movin_menu'){
+        input_mode=last_input_mode;
+    }
+    else if(input_mode=='zone' && pencil_down){
+        //this is so bad
+        drwrzonee(selected_ob,x,y,firstx,firsty);//TODO:make this get the obj it needs or not, cause just pencil tool.
+        let zone = selected_ob.zones[selected_ob.zones.length-1];// hahahahahah
+        mcgriddle.add(zone.xxx,zone.yyy,zone.xxx+zone.www,zone.yyy+zone.hhh,zone); // that input scheme u thought up is so bad.
+                                                                                // u gotta kill & fix it
+        //drwrlineee(canvas,lastx,lasty,firstx,firsty);//TODO:make this get the obj it needs or not, cause just pencil tool.
+    }
+    else if(input_mode=='draw'){
+        //so so bad
+        if(selected_ob.current_star){
+            selected_ob.current_star.update();
+        }
+    }
+    pencil_down = false;
+}
+////////////////
+// init function
+////////////////
+window.onload=function(){
+    console.warn("Shut up! It doesn't contain any text at all!")
+
+    window.all_obs = [];
+    var w = window.innerWidth;
+    var h = window.innerHeight;
+    // fuck the canvas right up fukkkkkkk uuuuuuuuu
+    var canvas = document.getElementById('canvas');
+    canvas.style.position = 'absolute';
+    canvas.style.left = '0px';
+    canvas.style.top = '0px';
+
+    // tool menu
+    window.menu = document.createElement("img");
+    menu.style.position = 'absolute';
+    menu.style.left=10;
+    menu.style.top =10;
+    menu.src = "toolbar2.png";
+    menu.onmousedown=function(e){e.preventDefault()};
+    document.body.appendChild(menu);
+    window.input_mode = 'move';
+
+    // custom cursorz r coool!
+    //document.body.style.cursor = "crosshair"
+    document.body.style.cursor = "none";//window.menu;
+    window.cursor = document.createElement("img");
+    cursor.style.position = 'absolute';
+    cursor.src = "cursor.png";
+    document.body.appendChild(cursor);
+
+    // menu for events!
+    eventMenu = document.createElement("div");
+    eventMenu.style.background="red";
+    eventMenu.style.cursor="default";
+    eventMenu.style.position = 'absolute';
+    eventMenu.style.left=10;
+    eventMenu.style.top=360;
+    eventMenu.style.width=70;
+    eventMenu.style.height=300;
+    eventMenu.style.border='solid';
+    eventMenu.style.borderWidth=2;
+    eventMenu.style.overflow='scroll';
+    window.tocking_tick=null;
+    window.tocking_fromStar=null;
+    eventMenu.add_tick = function(tick){
+        let new_menu_tick = document.createElement("div");
+        new_menu_tick.style.width=30;
+        new_menu_tick.tick = tick;
+        //TODO: swap these out for images
+        if(tick.exit){
+            new_menu_tick.innerHTML="<>";
+        }else{
+            new_menu_tick.innerHTML="><";
+        }
+        new_menu_tick.onclick = function(){
+                last_input_mode = input_mode;
+                input_mode = 'ticktock';
+                tocking_tick = this.tick;
+        }
+
+        eventMenu.appendChild(new_menu_tick);
+    }
+    document.body.appendChild(eventMenu);
+
+    fuck_you=10;
+    canvas.width=window.innerWidth-fuck_you;
+    canvas.height=window.innerHeight-fuck_you;
+    window.ctx = canvas.getContext('2d');
+    ctx.beginPath();
+    ctx.rect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'red';
+    ctx.fill();
+    //drwrlineee(canvas,51,51,300,80);
+    window.x=100;
+    window.y=30;
+    window.dx=0;
+    window.dy=0;
+    window.firstx=0;
+    window.firsty=0;
+    window.lastx=0;
+    window.lasty=0;
+
+    window.selected_ob = 'boobs';
+    window.hl_ob = 'dickz';
+    testob = Ob();
+    window.ctx = testob.ctx;
+
+    window.svglayer = document.getElementById("svglayer");
+    svglayer.width.baseVal.value=window.innerWidth - fuck_you;
+    svglayer.height.baseVal.value=window.innerHeight - fuck_you;
+    window.menuhl = document.getElementById("menuhl");
+    menuhl.x.baseVal.value=5;
+    menuhl.y.baseVal.value=5;
+    window.liner = document.getElementById("liner");
+    liner.x1.baseVal.value= 1;
+    liner.y1.baseVal.value= 1;
+    liner.x2.baseVal.value= 2;
+    liner.y2.baseVal.value= 2;
+    //foo = liner.cloneNode();
+    //svglayer.appendChild(foo);
+}
+function drwrlineee(ob,x1,y1,x2,y2){
+    ctxxx = ob.getContext('2d');
+    ctxxx.beginPath();
+    ctxxx.moveTo(x1-ob.style.left.slice(0,-2),y1-ob.style.top.slice(0,-2));
+    ctxxx.lineTo(x2-ob.style.left.slice(0,-2),y2-ob.style.top.slice(0,-2));
+    ctxxx.stroke();
+}
+function drwrzonee(ob,x1,y1,x2,y2){
+    foo = liner.cloneNode();
+    zoo = ob.zones[ob.zones.length-1];
+    zoo.appendChild(foo);
+    foo.x1.baseVal.value = x1 - zoo.xxx;
+    foo.y1.baseVal.value = y1 - zoo.yyy;
+    foo.x2.baseVal.value = x2 - zoo.xxx;
+    foo.y2.baseVal.value = y2 - zoo.yyy;
+    // resize if drawing outside
+    if(x2>zoo.xxx+zoo.www){
+        zoo.www = x2-zoo.xxx;
+        zoo.resize();
+    }else if (x2<zoo.xxx){
+        zoo.www += zoo.xxx-x2;
+        zoo.resize();
+        zoo.movelines(zoo.xxx-x2,0);
+        zoo.xxx = x2;
+        zoo.rejig();
+    }
+    if(y2>zoo.yyy+zoo.hhh){
+        zoo.hhh = y2-zoo.yyy;
+        zoo.resize();
+    }else if (y2<zoo.yyy){
+        zoo.hhh += zoo.yyy-y2;
+        zoo.resize();
+        zoo.movelines(0,zoo.yyy-y2);
+        zoo.yyy = y2;
+        zoo.rejig();
+    }
+
+}
+// this is neat... delete it!!!!!
+function move(){
+      bx = document.getElementById("box");
+
+      hereXstr = bx.style.left;//.slice(0,bx.style.left.length-2);
+      hereXstr.replace("px","");
+      hereX = parseInt(hereXstr);
+
+      hereYstr = bx.style.top;
+      hereYstr.replace("px","");
+      hereY = parseInt(hereYstr);
+
+      thereX = x;
+      thereY = y;
+
+      newX = (4*hereX+thereX)/5;
+      newY = (4*hereY+thereY)/5;
+      bx.style.left = newX;
+      bx.style.top = newY;
+
+      if(Math.abs(thereX-hereX)>7 || Math.abs(thereY-hereY)>7)
+          doing = 1;
+          //setTimeout(function(){move(x,y);}, 100);
+}
+trig=null;
+function m(e){
+//       if(goobable){
+//          goobable = false;
+        lastx = x;
+        lasty = y;
+        x = e.pageX;
+        y = e.pageY;
+        dx = x-lastx;
+        dy = y-lasty;
+        if(pencil_down){
+            input_fun[input_mode][1](e);
+        }else{
+            input_fun[input_mode][2](e);
+        }
+    //move cursor
+        cursor.style.top = y;
+        cursor.style.left = x;
+//     } // goobable was a dum idea.
+    }
+ // window.goobable = false;
+ // function goob(){
+ //     goobable = true;
+ // }
+ //   window.setInterval(goob, 100);// doesn't even help with the multi babb issue.
+</script>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <svg id="svglayer" width="400" height="1000" style="position:absolute">
+      <rect id="menuhl" x=100 y=100 width="38" height="38" style="fill:rgb(2550,100,100);stroke-width:4;stroke:rgb(0,0,0)" />
+      <line id="liner" x1="0" y1="0" x2="300" y2="300" style="stroke:rgb(255,255,255);stroke-width:2" />
+    </svg>
+</body>
 </html>
 <!--800 lines of code! Hawt!>
