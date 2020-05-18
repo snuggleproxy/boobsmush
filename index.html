@@ -827,6 +827,7 @@ window.onmousedown=function(e){
                         // fix this whole input schema
                         if(old_mode=="play"){
                             console.log("restoring after play");
+                            selected_ob.show_stars();
                             for (let jj=0; jj<all_obs.length; jj++){
                                 all_obs[jj].liner.style.visibility='';
                                 all_obs[jj].style.border=all_obs[jj].pregame_border;
@@ -844,6 +845,7 @@ window.onmousedown=function(e){
 
                         } else if(input_mode=="play"){
                             console.log("storing for play");
+                            selected_ob.hide_stars();
                             for (let jj=0; jj<all_obs.length; jj++){
                                 all_obs[jj].liner.style.visibility='hidden';
                                 all_obs[jj].pregame_border=all_obs[jj].style.border;
@@ -942,7 +944,7 @@ window.onload=function(){
     eventMenu.style.position = 'absolute';
     eventMenu.style.left=10;
     eventMenu.style.top=360;
-    eventMenu.style.width=70;
+    eventMenu.style.width=50;
     eventMenu.style.height=300;
     eventMenu.style.border='solid';
     eventMenu.style.borderWidth=2;
