@@ -629,6 +629,7 @@ window.get_closest = function(){
 //
 // TODO: remove all of this and just use a big ugly event parse tree
 //
+window.no_input_latch=false;
 window.input_fun={
     'ticktock':[
         function(e){},
@@ -646,15 +647,26 @@ window.input_fun={
     'move':[
         function(e){
             e.preventDefault();
-            // move center to cursor
-            closest = get_closest();
-            all_obs[closest].select();
+            stars_in_tha_skyyyy=selected_ob.starmap.wut_zones(x,y);
+            if(stars_in_tha_skyyyy.length > 0){
+                no_input_latch=true;
+                stars_in_tha_skyyyy[0].make_current();
+            }else{
+                // move center to cursor
+                closest = get_closest();
+                all_obs[closest].select();
+            }
         },
         function(e){
-            // move by dx & dy
-            selected_ob.move(dx,dy);
+            if(!no_input_latch){
+                // move by dx & dy
+                selected_ob.move(dx,dy);
+            }
         },
         function(e){
+            if(no_input_latch){
+                no_input_latch=false;
+            }
             closest = get_closest();
             all_obs[closest].hl();
                     // wrong algorithm!!! thats for inside of!!!
@@ -676,8 +688,6 @@ window.input_fun={
                 //Trig(selected_ob);
 
                 stars_in_tha_skyyyy=selected_ob.starmap.wut_zones(x,y);
-                console.log("hi");
-                console.log(stars_in_tha_skyyyy);
                 if(stars_in_tha_skyyyy.length > 0){
                     stars_in_tha_skyyyy[0].make_current();
                 }else{
@@ -693,6 +703,7 @@ window.input_fun={
     ],
     'new':[
         function(e){
+            no_input_latch=true;
             e.preventDefault();
             newob = Ob(selected_ob);
         },
@@ -701,7 +712,13 @@ window.input_fun={
             selected_ob.width+=dx;
             selected_ob.height+=dy;
         },
-        function(e){},
+        function(e){
+            if(no_input_latch){
+                no_input_latch=false;
+                input_mode = 'draw';
+                menuhl.y.baseVal.value=5+40;
+            }
+        },
     ],
     'zone':[
         function(e){ //click
@@ -1022,4 +1039,4 @@ function m(e){
     </svg>
 </body>
 </html>
-<!--800 lines of code! Hawt!>
+<!--1000 lines of code! Hawt!>
