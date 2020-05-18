@@ -2,8 +2,10 @@
 <head>
 <script>
 
+freshest_tock_id=0;
 function Tock(ob,fromStar,toStar){
     tock = new Object();
+    tock.id = freshest_tock_id++;
     tock.ob = ob;
     tock.fromStar = fromStar;
     tock.toStar = toStar;
@@ -12,15 +14,19 @@ function Tock(ob,fromStar,toStar){
     }
     return(tock)
 }
+freshest_tick_id=0;
 function Tick(zone,trig,exit){
     tick = new Object();
+    tick.id=freshest_tick_id
     tick.exit = exit;
     tick.zone = zone;
     tick.trig = trig;
     tick.tocks = [];
     tick.tick = function(){
         for (let ii=0;ii<this.tocks.length;ii++){
-            this.tocks[ii].tock()
+            if(this.tocks[ii].ob.current_star==this.tocks[ii].fromStar){
+                this.tocks[ii].tock()
+            }
         }
     }
     tick.add_tock = function(tock){
@@ -37,24 +43,24 @@ function Tick(zone,trig,exit){
 }
 ticks={};
 function getTick(zone,trig,exit){
-    if(ticks[zone]){
-        if(ticks[zone][trig]){
-            if(ticks[zone][trig][exit]){
-                return(ticks[zone][trig][exit]);
+    if(ticks[zone.id]){
+        if(ticks[zone.id][trig.id]){
+            if(ticks[zone.id][trig.id][exit]){
+                return(ticks[zone.id][trig.id][exit]);
             }else{
-                ticks[zone][trig][exit] = Tick(zone,trig,exit);
-                return(ticks[zone][trig][exit]);
+                ticks[zone.id][trig.id][exit] = Tick(zone,trig,exit);
+                return(ticks[zone.id][trig.id][exit]);
             }
         }else{
-            ticks[zone][trig] = {};
-            ticks[zone][trig][exit] = Tick(zone,trig,exit);
-            return(ticks[zone][trig][exit]);
+            ticks[zone.id][trig.id] = {};
+            ticks[zone.id][trig.id][exit] = Tick(zone,trig,exit);
+            return(ticks[zone.id][trig.id][exit]);
         }
     }else{
-        ticks[zone]={};
-        ticks[zone][trig] = {};
-        ticks[zone][trig][exit] = Tick(zone,trig,exit);
-        return(ticks[zone][trig][exit]);
+        ticks[zone.id]={};
+        ticks[zone.id][trig.id] = {};
+        ticks[zone.id][trig.id][exit] = Tick(zone,trig,exit);
+        return(ticks[zone.id][trig.id][exit]);
     }
 }
 
@@ -370,8 +376,10 @@ function Trig(ob){
     }
     trig.in_the_zone = mcgriddle.wut_zones(this.x,this.y);
 }
+freshest_zone_id = 0;
 function Zone(ob){
     zone = svglayer.cloneNode();// fuck how do you create svg
+    zone.id=freshest_zone_id++;
     zone.xxx = x;
     zone.yyy = y;
     zone.www = 10;
@@ -787,7 +795,7 @@ window.onmouseup=function(e){
             //tocking_fromStar = stars_in_tha_skyyyy[0];
             tocking_tick.add_tock(
                 Tock(
-                    selected_ob,
+                    tocking_fromStar.ob,
                     tocking_fromStar,
                     stars_in_tha_skyyyy[0]  ));
         }
@@ -869,9 +877,11 @@ window.onload=function(){
             new_menu_tick.innerHTML="><";
         }
         new_menu_tick.onclick = function(){
+            if(input_mode!="ticktock"){
                 last_input_mode = input_mode;
                 input_mode = 'ticktock';
                 tocking_tick = this.tick;
+            }
         }
 
         eventMenu.appendChild(new_menu_tick);
