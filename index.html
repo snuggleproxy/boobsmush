@@ -644,6 +644,26 @@ window.input_fun={
         },
         function(e){},
     ],
+    'play':[
+        function(e){
+            e.preventDefault();
+                // move center to cursor
+                //closest = get_closest();
+                //all_obs[closest].select();
+        },
+        function(e){
+                selected_ob.move(dx,dy);
+        },
+        function(e){
+            //closest = get_closest();
+                    // wrong algorithm!!! thats for inside of!!!
+                    //x>ib.left &&
+                    //x<ib.left+ib.width &&
+                    //y>ib.top &&
+                    //y<ib.top+ib.height
+
+        },
+    ],
     'move':[
         function(e){
             e.preventDefault();
@@ -757,7 +777,7 @@ window.input_fun={
     ],
 }
 window.onmousedown=function(e){
-    toolz = ['move','draw','new','zone','trig','trash'];
+    toolz = ['move','draw','new','zone','trig','trash','play'];
     menux=parseInt(menu.style.left);
     menuy=parseInt(menu.style.top);
     if( input_mode == 'ticktock' ){
@@ -791,6 +811,38 @@ window.onmousedown=function(e){
 
                         // move the dum tool selectorb
                         menuhl.y.baseVal.value=5+i*40;
+                        //TODO: this is the absolute worst fix this:
+                        // fix this whole input schema
+                        if(old_mode=="play"){
+                            console.log("restoring after play");
+                            for (let jj=0; jj<all_obs.length; jj++){
+                                all_obs[jj].liner.style.visibility='';
+                                all_obs[jj].style.border=all_obs[jj].pregame_border;
+                                all_obs[jj].move(
+                                    all_obs[jj].pregame_x - all_obs[jj].x ,
+                                    all_obs[jj].pregame_y - all_obs[jj].y 
+                                    );
+                                if(all_obs[jj].pregame_star){
+                                    all_obs[jj].pregame_star.make_current();
+                                }
+                            }
+                            menu.hidden=false;
+                            eventMenu.hidden=false;
+
+                        } else if(input_mode=="play"){
+                            console.log("storing for play");
+                            for (let jj=0; jj<all_obs.length; jj++){
+                                all_obs[jj].liner.style.visibility='hidden';
+                                all_obs[jj].pregame_border=all_obs[jj].style.border;
+                                all_obs[jj].pregame_x=all_obs[jj].x;
+                                all_obs[jj].pregame_y=all_obs[jj].y;
+                                all_obs[jj].style.border='hidden';
+                                all_obs[jj].pregame_star=all_obs[jj].current_star;
+                            }
+                            menu.hidden=true;
+                            menuhl.y.baseVal.value=5;
+                            eventMenu.hidden=true;
+                        }
                     }
                 }
             }
