@@ -215,11 +215,11 @@
                 trig = document.createElement("div");
                 trig.innerHTML="*";
                 trig.style.position = 'absolute';
-                trig.x = x-4;
-                trig.y = y-6;
+                trig.x = x;
+                trig.y = y;
                 trig.rejig = function(){
-                    this.style.left = this.x;
-                    this.style.top = this.y;
+                    this.style.left = this.x-2;
+                    this.style.top = this.y-4;
                 };
                 trig.rejig();
                 document.body.appendChild(trig);
@@ -748,6 +748,8 @@
 
             // menu for events!
             eventMenu = document.createElement("div");
+            eventMenu.style.background="red";
+            eventMenu.style.cursor="default";
             eventMenu.style.position = 'absolute';
             eventMenu.style.left=10;
             eventMenu.style.top=360;
@@ -861,6 +863,7 @@
                   doing = 1;
                   //setTimeout(function(){move(x,y);}, 100);
         }
+        trig=null;
 		function m(e){
      //       if(goobable){
       //          goobable = false;
