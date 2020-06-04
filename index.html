@@ -1,11 +1,16 @@
 <html onmousemove="m(event)">
 <head>
+<script src="FileSaver.min.js"></script>
+<script src="jszip.min.js"></script>
 <script>
 
+
+window.tocks=[];
 freshest_tock_id=0;
 function Tock(ob,fromStar,toStar){
     tock = new Object();
     tock.id = freshest_tock_id++;
+    tocks.push(tock);
     tock.ob = ob;
     tock.fromStar = fromStar;
     tock.toStar = toStar;
@@ -14,10 +19,12 @@ function Tock(ob,fromStar,toStar){
     }
     return(tock)
 }
+ticks=[];
 freshest_tick_id=0;
 function Tick(zone,trig,exit){
     tick = new Object();
     tick.id=freshest_tick_id++;
+    ticks.push(tick);
     tick.exit = exit;
     tick.zone = zone;
     tick.trig = trig;
@@ -269,6 +276,8 @@ freshest_trig_id=0;
 function Trig(ob){
     trig = document.createElement("div");
     trig.id=freshest_trig_id++;
+    trigs.push(trig);
+    ob.trigs.push(trig);
     trig.innerHTML="*";
     trig.style.position = 'absolute';
     trig.x = x;
@@ -279,8 +288,6 @@ function Trig(ob){
     };
     trig.rejig();
     document.body.appendChild(trig);
-    ob.trigs.push(trig);
-    trigs.push(trig);
     trig.move = function(xchange,ychange){
         // TODO: OH NO!!! It's looping through all trigs and looking at each trig, how did I not notice... I am dum
         for(let ii=0; ii<trigs.length; ii++){
@@ -371,9 +378,11 @@ function Trig(ob){
     trig.in_the_zone = mcgriddle.wut_zones(this.x,this.y);
 }
 freshest_zone_id = 0;
+zones=[];
 function Zone(ob){
     zone = svglayer.cloneNode();// fuck how do you create svg
     zone.id=freshest_zone_id++;
+    zones.push(zone);
     zone.xxx = x;
     zone.yyy = y;
     zone.www = 10;
@@ -411,6 +420,8 @@ function Zone(ob){
         mcgriddle.add(this.xxx,this.yyy,this.xxx+this.www,this.yyy+this.hhh,this);
     }
 }
+freshest_ob_id = 0;
+obs=[];
 function Ob(mom){
     ob = document.createElement("canvas");
     ob.style.position = 'absolute';
@@ -418,7 +429,8 @@ function Ob(mom){
     ob.y = y;
     ob.width=10;
     ob.height=10;
-    ob.id=freshest_id++;
+    ob.id=freshest_ob_id++;
+    obs.push(ob);
     ob.liner = liner.cloneNode();
     svglayer.appendChild(ob.liner);
     ob.rejig = function(){
@@ -543,7 +555,6 @@ function Ob(mom){
     all_obs.push(ob);
     return(ob)
 }
-
 Star = function(ob){
     star = document.createElement("canvas");
     star.ob = ob;
@@ -781,7 +792,7 @@ window.input_fun={
     ],
 }
 window.onmousedown=function(e){
-    toolz = ['move','draw','new','zone','trig','trash','play'];
+    toolz = ['move','draw','new','zone','trig','trash','play','save'];
     menux=parseInt(menu.style.left);
     menuy=parseInt(menu.style.top);
     if( input_mode == 'ticktock' ){
@@ -800,7 +811,12 @@ window.onmousedown=function(e){
                 input_mode = 'movin_menu';
             }else{
                 for(i=toolz.length-1;i>=0;i--){
-                    if(y<menuy+(i+1)*40){ //TODO: probz don't hardcode this
+                    // it was setting the input mode to every one until it got to the correct one
+                    // how silly
+                    // past me wuz dum
+                    if(y<menuy+(i+1)*40
+                       &&
+                       y>menuy+((i)*40)){ //TODO: probz don't hardcode this
                         let old_mode = input_mode;
                         input_mode = toolz[i]
 
@@ -814,9 +830,35 @@ window.onmousedown=function(e){
                    //   }
 
                         // move the dum tool selectorb
+                        let old_menuhl = menuhl.y.baseVal.value;
+                        console.log(old_menuhl);
                         menuhl.y.baseVal.value=5+i*40;
                         //TODO: this is the absolute worst fix this:
                         // fix this whole input schema
+                        //  seperate on click functions. glifs in dif imgs & shiz
+                        if(input_mode=="save"){
+                            // it took me a minute to code this one if statement.
+                                                /// only code while drunk!!!!!!!!!!!!!^^^^^^^^^^^^^6
+                                    // you can see my emotional stat in the six.
+                                        // fuzziness is why it got there
+                                            // that sentiment is why it stayed there.
+
+                            input_mode = old_mode; // saving isn't a mode! Why are thingz like this!?!?!?
+                            setTimeout(()=>{menuhl.y.baseVal.value=old_menuhl;},500);
+
+                            var zip = new JSZip();
+                            zip.file("Hello.txt", "Hello World\n");
+                            var img = zip.folder("images");
+                            //img.file("smile.gif", imgData, {base64: true});
+                            zip.generateAsync({type:"blob"}).then(function(content) {
+                                // see FileSaver.js
+                                saveAs(content, "example.zip");
+                            });
+                            // there's normal competence, which is booring
+                             //and there's normal incompetence which is ... all kinds of htings
+                              // then theres this kind of incopmetence which is extremely charming
+                                    // I will ne3ver atain that kind of incompetence... <3
+                        }
                         if(old_mode=="play"){
                             console.log("restoring after play");
                             selected_ob.show_stars();
@@ -851,6 +893,7 @@ window.onmousedown=function(e){
                             menuhl.y.baseVal.value=5;
                             eventMenu.hidden=true;
                         }
+                        break;
                     }
                 }
             }
