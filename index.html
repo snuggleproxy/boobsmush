@@ -848,40 +848,74 @@ window.onmousedown=function(e){
                             setTimeout(()=>{menuhl.y.baseVal.value=old_menuhl;},500);
 
                             var zip = new JSZip();
-                            zip.file("Hello.txt", "Hello World\n");
-                            let imgFolder = zip.folder("images"+selected_ob.id);
 
-                            selected_ob.star_bloober_count=0;
-                            selected_ob.star_bloobing=true;
-                            console.log(selected_ob.stars);
-                            for (let ii = 0; ii < selected_ob.stars.length; ii++){
-                            //selected_ob.stars.map((star)=>{
-                                let star = selected_ob.stars[ii];
-                                selected_ob.star_bloober_count++;
-                                //star.img.toBlob((bloob)=>{
-                                fetch(star.img.src).then((r)=>{//r => r.blob());
-                                    let bloob = r.blob();
-                                    imgFolder.file(ii+".png", bloob);//, {base64: true});
-                                    zip.generateAsync({type:"blob"}).then((content)=>{
-                                        selected_ob.star_bloober_count--;
-                                        console.log("checking bloober "+selected_ob.star_bloober_count);
-                                        if(selected_ob.star_bloober_count == 0
-                                                && !selected_ob.star_bloobing){
-                                        
-                                            console.log("doing save");
-                                            // see FileSaver.js
-                                            saveAs(content, "example.zip");
-                                        }
-                                    });
-                                });
-                            }//);
-                            selected_ob.star_bloobing = false;
-                            console.log("checking bloober "+selected_ob.star_bloober_count);
-                            if(selected_ob.star_bloober_count == 0){
+                            zip.file("Hello.txt", "Hello World\n");
+
+                            let saveotron = function (content){
                                 // see FileSaver.js
                                 console.log("doing save");
                                 saveAs(content, "example.zip");
                             }
+
+                            var ob_saving_count = 0;
+                            var ob_saving = true;
+                            obs.map((thisOb)=>{
+                                ob_saving_count ++;// doing things this way could cause an error down
+                                                // the line where the check to see if all the stars
+                                                // for the ob have been converted to blobs double counts
+                                                // (race condition, see below)
+                                                // so if this seems to be a glitch ever change this to
+                                                // an array system with names and blah blah blah
+
+                                let imgFolder = zip.folder("images"+thisOb.id);
+
+                                thisOb.star_bloober_count=0;
+                                thisOb.star_bloobing=true;
+                                console.log(thisOb.stars);
+                                for (let ii = 0; ii < thisOb.stars.length; ii++){
+                                    let star = thisOb.stars[ii];
+                                    thisOb.star_bloober_count++;
+                                    //star.img.toBlob((bloob)=>{
+                                    fetch(star.img.src).then((r)=>{//r => r.blob());
+                                        let bloob = r.blob();
+                                        imgFolder.file(ii+".png", bloob);//, {base64: true});
+
+
+                                        zip.generateAsync({type:"blob"}).then((content)=>{
+                                            thisOb.star_bloober_count--;
+                                            console.log("checking bloober "+thisOb.star_bloober_count);
+                                            if(thisOb.star_bloober_count == 0
+                                                    && !thisOb.star_bloobing){
+                                                console.log("finn'd one:");
+                                                console.log(thisOb);
+                                                ob_saving_count--;
+                                                if(ob_saving_count == 0
+                                                        && !ob_saving){
+                                                    saveotron(content);
+                                                }
+                                            }
+                                        });
+                                    });
+                                }//);
+                                console.log("checking bloober "+thisOb.star_bloober_count);
+                                thisOb.star_bloobing = false;//RACE CONDITION HERE!
+                                                            // if blob finishes between here
+                                                            // and the next line there will be DOUBLE COUNTING!!!
+                                if(thisOb.star_bloober_count == 0){
+                                    console.log("finn'd one:");
+                                    console.log(thisOb);
+                                    ob_saving_count--;
+                                    if(ob_saving_count == 0
+                                            && !ob_saving){
+                                        saveotron(content);
+                                    }
+                                }
+                            });// end of ob loop
+                            ob_saving = false; //RACE CONDITION HERE!
+                            if(ob_saving_count == 0){
+                                saveotron(content);
+                            }
+
                             // there's normal competence, which is booring
                              //and there's normal incompetence which is ... all kinds of htings
                               // then theres this kind of incopmetence which is extremely charming
