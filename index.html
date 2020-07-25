@@ -837,6 +837,9 @@ window.onmousedown=function(e){
                         //TODO: this is the absolute worst fix this:
                         // fix this whole input schema
                         //  seperate on click functions. glifs in dif imgs & shiz
+                        ///////////////////
+                        // SAVE FUNCTION!!!!////////
+                        //////////
                         if(input_mode=="save"){
                             // it took me a minute to code this one if statement.
                                                 /// only code while drunk!!!!!!!!!!!!!^^^^^^^^^^^^^6
@@ -859,6 +862,7 @@ window.onmousedown=function(e){
 
                             var ob_saving_count = 0;
                             var ob_saving = true;
+                            let globimgFolder = zip.folder("images");
                             obs.map((thisOb)=>{
                                 ob_saving_count ++;// doing things this way could cause an error down
                                                 // the line where the check to see if all the stars
@@ -867,11 +871,23 @@ window.onmousedown=function(e){
                                                 // so if this seems to be a glitch ever change this to
                                                 // an array system with names and blah blah blah
 
-                                let imgFolder = zip.folder("images"+thisOb.id);
+                                let imgFolder = globimgFolder.folder(thisOb.id);
 
                                 thisOb.star_bloober_count=0;
                                 thisOb.star_bloobing=true;
                                 console.log(thisOb.stars);
+                                /// if it got no stars save its img
+                                if (thisOb.stars.length == 0){
+                                    console.log(thisOb);
+                                    thisOb.toBlob((bloob)=>{
+                                        imgFolder.file("img.png", bloob);//, {base64: true});
+                                        zip.generateAsync({type:"blob"}).then((content)=>{
+                                            console.log("the old one image, eh!?");
+                                                    saveotron(content);
+                                        });
+                                    });
+                                }
+                                /// otherwise just save it's stars
                                 for (let ii = 0; ii < thisOb.stars.length; ii++){
                                     let star = thisOb.stars[ii];
                                     thisOb.star_bloober_count++;
@@ -913,6 +929,8 @@ window.onmousedown=function(e){
                             });// end of ob loop
                             ob_saving = false; //RACE CONDITION HERE!
                             if(ob_saving_count == 0){
+                                console.log("end of ob save!");
+                                console.log(content);
                                 saveotron(content);
                             }
 
@@ -1204,4 +1222,4 @@ function m(e){
     </svg>
 </body>
 </html>
-<!--1100 lines of code! Hawt!>
+<!--1200 lines of code! Hawt!>
