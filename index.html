@@ -2,6 +2,7 @@
 <head>
 <script src="FileSaver.min.js"></script>
 <script src="jszip.min.js"></script>
+<script type="text/javascript" src="dist/jszip-utils.js"></script>
 <script>
 
 
@@ -1023,7 +1024,7 @@ window.onmouseup=function(e){
 // init function
 ////////////////
 window.onload=function(){
-    console.warn("Shut up! It doesn't contain any text at all!")
+    console.warn("Shut up firefox! It doesn't contain any text at all!")
 
     window.all_obs = [];
     var w = window.innerWidth;
@@ -1124,6 +1125,56 @@ window.onload=function(){
     liner.y2.baseVal.value= 2;
     //foo = liner.cloneNode();
     //svglayer.appendChild(foo);
+
+
+    // lets get our load on!!!
+
+//    var request = new XMLHttpRequest();
+//    request.open('GET', 'gamefile.zip', true);
+//    request.responseType = 'blob';
+//    request.onload = function() {
+//        console.log(request.response)
+//        //var reader = new FileReader();
+//        //reader.readAsDataURL(request.response);
+//        //reader.onload =  function(e){
+//            //console.log('DataURL:', e.target.result);
+//        //};
+//    };
+//    request.send( document );
+
+    fetch('gamefile.zip').then((r)=>{//r => r.blob());
+    //JSZipUtils.getBinaryContent('gamefile.zip', function(err, data) {
+    //if(err) {
+    //    throw err; // or handle err
+    //}
+
+        JSZip.loadAsync(r.blob()).then(function (zippo) {
+            //// ...
+            console.log(zippo);// it's not a hippo
+            console.log(zippo['files']['images/1/img.png']);
+            bweebop = zippo.files['images/1/img.png'];
+            window.imgee = new Image();
+            imgee.onload = function(){
+                testob.ctx.drawImage(window.imgee,0,0);
+            }
+            bweebop.internalStream("uint8array")
+                           //string, binarystring, uint8array, arraybuffer, nodebuffer
+                .on("data", function (data) {
+                    console.log(data);
+                    blobberino = new Blob([data], { type: "image/png" });
+                    console.log(blobberino);
+                    testob.width=500;
+                    testob.height=500;
+                    window.imgee.src=URL.createObjectURL(blobberino);
+                    console.log(URL.createObjectURL(blobberino));
+                    console.log(window.imgee.src);
+                    document.body.appendChild(window.imgee);
+                })
+                .on("error", function (e) {console.log("err",e);})
+                .on("end", function () {console.log("finish'd12342343");})
+                .resume();
+        });
+    });
 }
 function drwrlineee(ob,x1,y1,x2,y2){
     ctxxx = ob.getContext('2d');
