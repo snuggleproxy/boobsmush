@@ -552,6 +552,15 @@ function Ob(mom){
             this.trigs[ii].style.visibility="";
         }
     }
+    ob.putAway = function(){
+        return [
+            this.id,
+            this.x,
+            this.y,
+            this.width,
+            this.height,
+        ];
+    }
     ob.select();
     document.body.appendChild(ob);    
     all_obs.push(ob);
@@ -838,6 +847,7 @@ window.onmousedown=function(e){
                         //TODO: this is the absolute worst fix this:
                         // fix this whole input schema
                         //  seperate on click functions. glifs in dif imgs & shiz
+
                         ///////////////////
                         // SAVE FUNCTION!!!!////////
                         //////////
@@ -853,7 +863,18 @@ window.onmousedown=function(e){
 
                             var zip = new JSZip();
 
-                            zip.file("Hello.txt", "Hello World\n");
+                            let dataaaaastring = "";
+                            dataaaaastring += JSON.stringify(
+                                all_obs.map((ob)=>{
+                                    stringu = ob.putAway();
+                                    console.log(ob);
+                                    console.log(stringu);
+                                    return ob.putAway();
+                                }
+                            ));
+                            zip.file("Hello.txt", 
+                                dataaaaastring
+                                );
 
                             let saveotron = function (content){
                                 // see FileSaver.js
@@ -932,7 +953,7 @@ window.onmousedown=function(e){
                             if(ob_saving_count == 0){
                                 console.log("end of ob save!");
                                 console.log(content);
-                                saveotron(content);
+                                setTimeout(()=>{saveotron(content)},800);
                             }
 
                             // there's normal competence, which is booring
@@ -940,6 +961,9 @@ window.onmousedown=function(e){
                               // then theres this kind of incopmetence which is extremely charming
                                     // I will ne3ver atain that kind of incompetence... <3
                         }
+                        // END OF SAVE
+
+                        // play mode!
                         if(old_mode=="play"){
                             console.log("restoring after play");
                             selected_ob.show_stars();
@@ -1109,8 +1133,9 @@ window.onload=function(){
 
     window.selected_ob = 'boobs';
     window.hl_ob = 'dickz';
-    testob = Ob();
-    window.ctx = testob.ctx;
+    //testob = Ob();
+    //testob = Ob();
+    //window.ctx = testob.ctx;
 
     window.svglayer = document.getElementById("svglayer");
     svglayer.width.baseVal.value=window.innerWidth - fuck_you;
@@ -1142,37 +1167,128 @@ window.onload=function(){
 //    };
 //    request.send( document );
 
-    fetch('gamefile.zip').then((r)=>{//r => r.blob());
+
+            ////////
+            // Load image from file stuff!@!!!
+            ///////
+
+    fetch('gamerfile4.zip').then((r)=>{//r => r.blob());
     //JSZipUtils.getBinaryContent('gamefile.zip', function(err, data) {
     //if(err) {
     //    throw err; // or handle err
     //}
 
+        function loadImgs(zippo){
+            console.log("loading imgs");
+            console.log(zippo);
+            console.log('fls:');
+            for (var flnam in zippo.files){
+                console.log(flnam);
+                if (flnam.startsWith("images")
+                    && flnam.endsWith(".png")){
+                    console.log("yuh!",flnam);
+                    let path = flnam.split("/");
+                    let obNum = path[1];
+                    let starflnm = path[2];
+                    let starNum = starflnm.split(".")[0];
+                    if (starNum.startsWith("img")){
+                        console.log("got no stars",obNum);
+                        let thisob = all_obs[obNum];
+                        console.log("should go with",thisob);
+                        let imrg = new Image();
+                        imrg.onload = function(){
+                            console.log("loaderd",thisob,imrg);
+                            all_obs[obNum].ctx.drawImage(imrg,0,0,thisob.width,thisob.height);
+                        }
+                        //let blobberino = new Blob([],{type: "img/png"});
+                        // thaks 
+                        // https://stackoverflow.com/questions/15970729/appending-blob-data
+                        // It turns out I was the Blob all along!!!o?
+                        // I was all 'oh I'll just grab this data and throw it in a new blob!'
+                        // but like, every time data got streamed, so like, I only made the
+                        // img with the last data that came in how silly!!!
+                        // ur lolling with me rite?
+                        let blobdata = [];
+                        zippo.files[flnam].internalStream("uint8array")
+                            .on("data", (data)=>{
+                                console.log("STREAMING DATA!!!!");
+                                blobdata.push(data);
+                                //blobberino = new Blob([data], { type: "image/png" });
+                                //console.log(blobberino);
+                                console.log(thisob);
+                                console.log(imrg);
+                                //imrg.src=URL.createObjectURL(blobberino);
+                                //document.body.appendChild(imrg);
+                                //all_obs[obNum].ctx.drawImage(all_obs[obNum].imrg,0,0);
+                            })
+                            .on("error", function (e) {console.log(flnam,"broke");console.log("err",e);})
+                            .on("end", function () { 
+                                console.log("sdfasdfasdfasdfasdfasdfsadfasdfasdfasdfdsf");
+                                let blobberino = new Blob(blobdata,{type: "img/png"});
+                                imrg.src=URL.createObjectURL(blobberino);
+                                //thisob.ctx.drawImage(imrg,0,0,thisob.width,thisob.height);
+                                console.log("finish'dasdfasd"); })
+                            .resume();
+                    }else{
+                        console.log("its star ",starNum);
+                    }
+                }
+            }
+        }
+
         JSZip.loadAsync(r.blob()).then(function (zippo) {
             //// ...
+            helloo = zippo.files['Hello.txt'];
+            helloo.internalStream("text").on("data",function(data){
+                console.log("its a text!@");
+                console.log(data);
+                let stuff = JSON.parse(data);
+                stuff.forEach((thing)=>{
+                    console.log("trying to make an ob");
+                    console.log(thing);
+                    newob = Ob();
+                    newob.x=thing[1];
+                    newob.y=thing[2];
+                    newob.rejig();
+                    newob.width=thing[3];
+                    newob.height=thing[4];
+                });
+            })
+                .on("error", function (e) {console.log("err",e);})
+                .on("end", function () {
+                    console.log("finish'd12342343");
+                    loadImgs(zippo);
+                })
+                .resume()
+            ;
+            
+
+            console.log("it's not a hippo");
             console.log(zippo);// it's not a hippo
-            console.log(zippo['files']['images/1/img.png']);
-            bweebop = zippo.files['images/1/img.png'];
+            console.log(zippo['files']['images/0/0.png']);
+            //bweebop = zippo.files['images/0/0.png'];
             window.imgee = new Image();
             imgee.onload = function(){
-                testob.ctx.drawImage(window.imgee,0,0);
+                //testob.width = 300;
+                //testob.height = 500;
+                all_obs[1].ctx.drawImage(window.imgee,0,0);
             }
-            bweebop.internalStream("uint8array")
-                           //string, binarystring, uint8array, arraybuffer, nodebuffer
-                .on("data", function (data) {
-                    console.log(data);
-                    blobberino = new Blob([data], { type: "image/png" });
-                    console.log(blobberino);
-                    testob.width=500;
-                    testob.height=500;
-                    window.imgee.src=URL.createObjectURL(blobberino);
-                    console.log(URL.createObjectURL(blobberino));
-                    console.log(window.imgee.src);
-                    document.body.appendChild(window.imgee);
-                })
-                .on("error", function (e) {console.log("err",e);})
-                .on("end", function () {console.log("finish'd12342343");})
-                .resume();
+          //  bweebop.internalStream("uint8array")
+          //                 //string, binarystring, uint8array, arraybuffer, nodebuffer
+          //      .on("data", function (data) {
+          //          console.log(data);
+          //          blobberino = new Blob([data], { type: "image/png" });
+          //          console.log(blobberino);
+          //          //testob.width=500;
+          //          //testob.height=500;
+          //          window.imgee.src=URL.createObjectURL(blobberino);
+          //          console.log(URL.createObjectURL(blobberino));
+          //          console.log(window.imgee.src);
+          //          document.body.appendChild(window.imgee);
+          //      })
+          //      .on("error", function (e) {console.log("err",e);})
+          //      .on("end", function () {console.log("finish'd12342343");})
+          //      .resume();
         });
     });
 }
