@@ -523,14 +523,20 @@ function Ob(mom){
     //ob.starmap.add(strrr.x,strrr.y,strrr.x+strrr.width,strrr.y+strrr.height,strrr);
     //ob.current_star = strrr;
     ob.current_star = null;
-    ob.new_star = function(){
-        star = Star(this);
-        star.x=x;
-        star.y=y;
+    ob._new_star = function(tx,ty,current){
+        star = Star(this,current);
+        star.x=tx;
+        star.y=ty;
         star.rejig();
         this.stars.push(star);
-        this.current_star=star;
+        if(current){
+            star.make_current();
+            //this.current_star=star;
+        }
         this.starmap.add(star.x,star.y,star.x+star.width,star.y+star.height,star);
+    }
+    ob.new_star = function(){
+        this._new_star(x,y,true);
     }
     ob.hide_stars = function(){
         for(let ii=0;ii<this.stars.length;ii++){
@@ -566,10 +572,13 @@ function Ob(mom){
     all_obs.push(ob);
     return(ob)
 }
-Star = function(ob){
+Star = function(ob,current){
     star = document.createElement("canvas");
     star.ob = ob;
-    star.ob.current_star=star;
+    star.current=current;
+    if (current){
+        star.ob.current_star=star;
+    }
     star.img = new Image;
     star.style.position = 'absolute';
     star.width=50;
@@ -607,7 +616,6 @@ Star = function(ob){
         this.ob.ctx.clearRect(0,0,this.ob.width,this.ob.height);
         this.ob.ctx.drawImage(this.img,0,0);
     }
-    star.current=true;
     star.time_tick = null;
     star.make_current = function(){
         if(this.time_tick){
@@ -617,6 +625,14 @@ Star = function(ob){
         this.ob.current_star=this;
         this.current=true;
         this.restore();
+    }
+    star.putAway = function(){
+        return [
+            this.ob.id,
+            this.x,
+            this.y,
+            this.current
+            ]
     }
     document.body.appendChild(star);
     return(star);
@@ -863,18 +879,33 @@ window.onmousedown=function(e){
 
                             var zip = new JSZip();
 
-                            let dataaaaastring = "";
-                            dataaaaastring += JSON.stringify(
-                                all_obs.map((ob)=>{
-                                    stringu = ob.putAway();
-                                    console.log(ob);
-                                    console.log(stringu);
-                                    return ob.putAway();
-                                }
-                            ));
-                            zip.file("Hello.txt", 
-                                dataaaaastring
-                                );
+
+                            ////////////
+                            ///  serialize all the thingz yo
+                            //
+                            let serializedSaveStuff = {
+                                "Obs":[],
+                                "Stars":[],
+                                "Zones":[],
+                                "Trigs":[],
+                                "Ticks":[],
+                                "Tocks":[]
+                            };
+                            all_obs.map((ob)=>{
+                                let sob = ob.putAway();
+                                serializedSaveStuff["Obs"].push(sob);
+                                ob.stars.map((star)=>{
+                                    let sstar = star.putAway();
+                                    console.log(star,sstar);
+                                    serializedSaveStuff["Stars"].push(sstar);
+                                });
+                           //     console.log(ob);
+                           //     console.log(stringu);
+                                return ob.putAway();
+                            }),
+                            console.log("serializedSaveStuff",serializedSaveStuff);
+                            let dataaaaastring = JSON.stringify(serializedSaveStuff);
+                            zip.file("Hello.txt", dataaaaastring);
 
                             let saveotron = function (content){
                                 // see FileSaver.js
@@ -1171,8 +1202,38 @@ window.onload=function(){
             ////////
             // Load image from file stuff!@!!!
             ///////
+    function loadImg(zippo,imgnam,wheretoputit,finalFun){
+        //let blobberino = new Blob([],{type: "img/png"});
+        // thaks 
+        // https://stackoverflow.com/questions/15970729/appending-blob-data
+        // It turns out I was the Blob all along!!!o?
+        // I was all 'oh I'll just grab this data and throw it in a new blob!'
+        // but like, every time data got streamed, so like, I only made the
+        // img with the last data that came in how silly!!!
+        // ur lolling with me rite?
+        let blobdata = [];
+        zippo.files[imgnam].internalStream("uint8array")
+            .on("data", (data)=>{
+                console.log("STREAMING DATA!!!!");
+                blobdata.push(data);
+                //blobberino = new Blob([data], { type: "image/png" });
+                //console.log(blobberino);
+                //console.log(thisob);
+            })
+            .on("error", function (e) {console.log(imgnam,"broke");console.log("err",e);})
+            .on("end", function () { 
+                console.log("sdfasdfasdfasdfasdfasdfsadfasdfasdfasdfdsf");
+                let blobberino = new Blob(blobdata,{type: "img/png"});
 
-    fetch('gamerfile4.zip').then((r)=>{//r => r.blob());
+                wheretoputit.src=URL.createObjectURL(blobberino);
+
+                console.log("finish'dasdfasd");
+                finalFun();
+            })
+            .resume();
+    }
+
+    fetch('gamerfile5.zip').then((r)=>{//r => r.blob());
     //JSZipUtils.getBinaryContent('gamefile.zip', function(err, data) {
     //if(err) {
     //    throw err; // or handle err
@@ -1191,51 +1252,69 @@ window.onload=function(){
                     let obNum = path[1];
                     let starflnm = path[2];
                     let starNum = starflnm.split(".")[0];
+
+                    let thisob = all_obs[obNum];
+                    console.log("should go with",thisob);
+
                     if (starNum.startsWith("img")){
+
                         console.log("got no stars",obNum);
-                        let thisob = all_obs[obNum];
-                        console.log("should go with",thisob);
+
                         let imrg = new Image();
                         imrg.onload = function(){
                             console.log("loaderd",thisob,imrg);
                             all_obs[obNum].ctx.drawImage(imrg,0,0,thisob.width,thisob.height);
                         }
-                        //let blobberino = new Blob([],{type: "img/png"});
-                        // thaks 
-                        // https://stackoverflow.com/questions/15970729/appending-blob-data
-                        // It turns out I was the Blob all along!!!o?
-                        // I was all 'oh I'll just grab this data and throw it in a new blob!'
-                        // but like, every time data got streamed, so like, I only made the
-                        // img with the last data that came in how silly!!!
-                        // ur lolling with me rite?
-                        let blobdata = [];
-                        zippo.files[flnam].internalStream("uint8array")
-                            .on("data", (data)=>{
-                                console.log("STREAMING DATA!!!!");
-                                blobdata.push(data);
-                                //blobberino = new Blob([data], { type: "image/png" });
-                                //console.log(blobberino);
-                                console.log(thisob);
-                                console.log(imrg);
-                                //imrg.src=URL.createObjectURL(blobberino);
-                                //document.body.appendChild(imrg);
-                                //all_obs[obNum].ctx.drawImage(all_obs[obNum].imrg,0,0);
-                            })
-                            .on("error", function (e) {console.log(flnam,"broke");console.log("err",e);})
-                            .on("end", function () { 
-                                console.log("sdfasdfasdfasdfasdfasdfsadfasdfasdfasdfdsf");
-                                let blobberino = new Blob(blobdata,{type: "img/png"});
-                                imrg.src=URL.createObjectURL(blobberino);
-                                //thisob.ctx.drawImage(imrg,0,0,thisob.width,thisob.height);
-                                console.log("finish'dasdfasd"); })
-                            .resume();
+                        loadImg(zippo,flnam,imrg,()=>{});
+
                     }else{
+
                         console.log("its star ",starNum);
+                        console.log(thisob);
+                        console.log(thisob.stars);
+                        let star = thisob.stars[starNum];
+                        /// make the thumbnail!!!
+                        star.img.onload=()=>{
+                            console.log("hello");
+                            console.log(star);
+                            star.ctx.clearRect(0,0,star.width,star.height);
+                            let hr = star.ob.width/star.width;
+                            let wr = star.ob.height/star.height;
+                            // TODO: i didn't think hard enuf to make star good.
+                            let scale_ratio = hr>wr?hr:wr;
+                            let drwX=ob.width/scale_ratio;
+                            let drwY=ob.height/scale_ratio;
+                            for(let i=0;i<10;i++)
+                            star.ctx.drawImage(star.img,
+                                (star.width-drwX)/2+i/10,
+                                (star.width-drwY)/2+i/10,
+                                drwX,drwY);
+                        } ///////////////////////////
+                        loadImg(
+                            zippo,
+                            flnam,
+                            star.img,
+                            ()=>{
+                                console.log("star callbacker ",star);
+                                setTimeout(()=>{
+                                    if (star.current){
+                                        star.restore();
+                                        //star.make_current();
+                                    }
+                                },300);
+                            }
+                        );
+
                     }
                 }
             }
         }
 
+        let crrstrrs = [];
+        //   this needs to get done after loading and setting imgs
+             //   crrstrrs.forEach((crrstrr)=>{
+             //       crrstrr.make_current();
+             //   });
         JSZip.loadAsync(r.blob()).then(function (zippo) {
             //// ...
             helloo = zippo.files['Hello.txt'];
@@ -1243,7 +1322,8 @@ window.onload=function(){
                 console.log("its a text!@");
                 console.log(data);
                 let stuff = JSON.parse(data);
-                stuff.forEach((thing)=>{
+                // OBS
+                stuff.Obs.forEach((thing)=>{
                     console.log("trying to make an ob");
                     console.log(thing);
                     newob = Ob();
@@ -1253,6 +1333,21 @@ window.onload=function(){
                     newob.width=thing[3];
                     newob.height=thing[4];
                 });
+                // STARS
+                stuff["Stars"].forEach((strrr)=>{
+                    console.log(strrr);
+                    let obobob = all_obs[strrr[0]];
+                    obobob._new_star(strrr[1],strrr[2],strrr[3]);
+                            // the underscore means its cool
+                    //strrrr = Star(obobob,strrr[3]);
+                    //strrrr.x = strrr[1];
+                    //strrrr.y = strrr[2];
+                    //strrrr.rejig();
+                    //if (strrr[3]){
+                        //crrstrrs.push(strrrr);
+                    //}
+                });
+
             })
                 .on("error", function (e) {console.log("err",e);})
                 .on("end", function () {
