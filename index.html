@@ -276,14 +276,17 @@ window.freshest_id = 0;
 window.trigs=[];
 freshest_trig_id=0;
 function Trig(ob){
+    _Trig(ob,x,y);
+}
+function _Trig(ob,tx,ty){
     trig = document.createElement("div");
     trig.id=freshest_trig_id++;
     trigs.push(trig);
     ob.trigs.push(trig);
     trig.innerHTML="*";
     trig.style.position = 'absolute';
-    trig.x = x;
-    trig.y = y;
+    trig.x = tx;
+    trig.y = ty;
     trig.rejig = function(){
         this.style.left = this.x-2;
         this.style.top = this.y-4;
@@ -381,7 +384,43 @@ function Trig(ob){
 }
 freshest_zone_id = 0;
 zones=[];
+function SquareZone(ob){
+    zone = document.createElement("div");
+    zone.style.border='solid';
+    zone.style.borderColor='white';
+    zone.style.borderWidth='1pt';
+    zone.style.position = 'absolute';
+    zone.id = freshest_zone_id++;
+    zones.push(zone);
+    zone.xxx = x;
+    zone.yyy = y;
+    zone.www = 10;
+    zone.hhh = 10;
+    zone.rejig = function(){
+        this.style.left = this.xxx;
+        this.style.top = this.yyy;
+    }
+    zone.resize = function(){
+        this.style.height = this.hhh;
+        this.style.width = this.www;
+    }
+    zone.movelines = function(xchange,ychange){}
+    zone.resize();
+    zone.rejig();
+    ob.zones.push(zone);
+    document.body.appendChild(zone);
+    zone.move = function(xchange,ychange){
+        mcgriddle.del(this.xxx,this.yyy,this.xxx+this.www,this.yyy+this.hhh,this);
+        this.xxx = this.xxx+xchange;
+        this.yyy = this.yyy+ychange;
+        this.rejig();
+        mcgriddle.add(this.xxx,this.yyy,this.xxx+this.www,this.yyy+this.hhh,this);
+    }
+}
 function Zone(ob){
+    SquareZone(ob);
+}
+function WigglyZone(ob){
     zone = svglayer.cloneNode();// fuck how do you create svg
     zone.id=freshest_zone_id++;
     zones.push(zone);
@@ -422,6 +461,17 @@ function Zone(ob){
         mcgriddle.add(this.xxx,this.yyy,this.xxx+this.www,this.yyy+this.hhh,this);
     }
 }
+
+
+
+////////// /////// ///
+///   '/// /////// ///
+// /// ///   '//// ///
+// /// /// // //// ///
+// /// /// // ////////
+//,   ////   ///// ///
+//////////////////////
+
 freshest_ob_id = 0;
 obs=[];
 function Ob(mom){
@@ -490,7 +540,8 @@ function Ob(mom){
         // zones
         if(selected_ob.zones)
             for (let ii=0;ii<selected_ob.zones.length;ii++){
-                selected_ob.zones[ii].style.visibility="hidden";
+                //selected_ob.zones[ii].style.visibility="hidden";
+                selected_ob.zones[ii].style.borderColor='ff7777';
         }
         //// new selected!!!
         selected_ob = this;
@@ -498,7 +549,8 @@ function Ob(mom){
         selected_ob.style.borderWidth=3;
         // zones
         for (let ii=0;ii<selected_ob.zones.length;ii++){
-                selected_ob.zones[ii].style.visibility="visible";
+                //selected_ob.zones[ii].style.visibility="visible";
+                selected_ob.zones[ii].style.borderColor='white';
         }
 
     }
@@ -565,6 +617,7 @@ function Ob(mom){
             this.y,
             this.width,
             this.height,
+            this.trigs.map(trg => trg.id),
         ];
     }
     ob.select();
@@ -868,7 +921,7 @@ window.onmousedown=function(e){
                         // SAVE FUNCTION!!!!////////
                         //////////
                         if(input_mode=="save"){
-                            // it took me a minute to code this one if statement.
+                            // it took me a whole minute to code this one if statement.
                                                 /// only code while drunk!!!!!!!!!!!!!^^^^^^^^^^^^^6
                                     // you can see my emotional stat in the six.
                                         // fuzziness is why it got there
@@ -887,7 +940,7 @@ window.onmousedown=function(e){
                                 "Obs":[],
                                 "Stars":[],
                                 "Zones":[],
-                                "Trigs":[],
+                                "Trigs":trigs.map( trg => [trg.x,trig.y] ),
                                 "Ticks":[],
                                 "Tocks":[]
                             };
@@ -1233,7 +1286,7 @@ window.onload=function(){
             .resume();
     }
 
-    fetch('gamerfile5.zip').then((r)=>{//r => r.blob());
+    fetch('gamerfile6.zip').then((r)=>{//r => r.blob());
     //JSZipUtils.getBinaryContent('gamefile.zip', function(err, data) {
     //if(err) {
     //    throw err; // or handle err
@@ -1332,6 +1385,17 @@ window.onload=function(){
                     newob.rejig();
                     newob.width=thing[3];
                     newob.height=thing[4];
+                    thing[5].forEach(trg => {
+                        stuff.Trigs[trg].push(newob.id);
+                    });
+                });
+                // Trigs
+                stuff.Trigs.forEach(trg =>{
+                    _Trig(
+                        all_obs[trg[2]],
+                        trg[0],
+                        trg[1]
+                        );
                 });
                 // STARS
                 stuff["Stars"].forEach((strrr)=>{
@@ -1386,7 +1450,12 @@ window.onload=function(){
           //      .resume();
         });
     });
+    loop();
 }
+/////////////
+// end of init function
+/////////////
+
 function drwrlineee(ob,x1,y1,x2,y2){
     ctxxx = ob.getContext('2d');
     ctxxx.beginPath();
@@ -1450,9 +1519,13 @@ function move(){
           //setTimeout(function(){move(x,y);}, 100);
 }
 trig=null;
+var keyFame = false;
 function m(e){
 //       if(goobable){
 //          goobable = false;
+  //mleah  if(keyFame){
+  //mleah      keyFame=false;
+
         lastx = x;
         lasty = y;
         x = e.pageX;
@@ -1467,8 +1540,22 @@ function m(e){
     //move cursor
         cursor.style.top = y;
         cursor.style.left = x;
-//     } // goobable was a dum idea.
-    }
+//      // goobable was a dum idea.
+  //mleah  }
+}
+
+//// this is a loop that says
+/// even if ur movin the mouse, dun do anything
+// unless a keyframe (12 per second) has elapsed.
+// this seems to slightly improve performance,
+// and gives a charming constant rate... But! It should be the other way round
+
+// TODO: check performance of setting latch on input event
+//mleahfunction loop(){
+//mleah    keyFame = true;
+//mleah    setTimeout(loop,1000/12);
+//mleah}
+
  // window.goobable = false;
  // function goob(){
  //     goobable = true;
