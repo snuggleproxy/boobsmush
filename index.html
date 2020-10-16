@@ -385,6 +385,9 @@ function _Trig(ob,tx,ty){
 freshest_zone_id = 0;
 zones=[];
 function SquareZone(ob){
+    _SquareZone(ob,x,y,1,1);
+}
+function _SquareZone(ob,tx,ty,tw,th){
     zone = document.createElement("div");
     zone.style.border='solid';
     zone.style.borderColor='white';
@@ -392,10 +395,10 @@ function SquareZone(ob){
     zone.style.position = 'absolute';
     zone.id = freshest_zone_id++;
     zones.push(zone);
-    zone.xxx = x;
-    zone.yyy = y;
-    zone.www = 10;
-    zone.hhh = 10;
+    zone.xxx = tx;
+    zone.yyy = ty;
+    zone.www = tw;
+    zone.hhh = th;
     zone.rejig = function(){
         this.style.left = this.xxx;
         this.style.top = this.yyy;
@@ -503,6 +506,8 @@ function Ob(mom){
     ob.ctx=ob.getContext('2d');
     if(mom){// there should only be one object without a mom.
         ob.mom = mom;
+        console.log("bout to puke");
+        console.log(mom);
         mom.babbs.push(ob);
     }
     ob.rejig();
@@ -568,6 +573,7 @@ function Ob(mom){
     //TODO this doesn't need to happen
     //let strrr = Star(ob);
     //ob.stars = [strrr];
+    ob.num_stars = 0;
     ob.stars=[];
     // TODO: make logic for this!!!
     // I don't remember what was meant by this and I don't care. Maybe u will.
@@ -618,6 +624,7 @@ function Ob(mom){
             this.width,
             this.height,
             this.trigs.map(trg => trg.id),
+            this.mom?this.mom.id:undefined,
         ];
     }
     ob.select();
@@ -628,6 +635,7 @@ function Ob(mom){
 Star = function(ob,current){
     star = document.createElement("canvas");
     star.ob = ob;
+    star.id = ob.num_stars++;
     star.current=current;
     if (current){
         star.ob.current_star=star;
@@ -941,9 +949,21 @@ window.onmousedown=function(e){
                                 "Stars":[],
                                 "Zones":[],
                                 "Trigs":trigs.map( trg => [trg.x,trig.y] ),
-                                "Ticks":[],
-                                "Tocks":[]
+                                "Ticks":all_ticks.map( tik => [
+                                    tik.zone.id,
+                                    tik.trig.id,
+                                    tik.exit,
+                                    tik.tocks.map( tok => tok.id )
+                                    ] ),
+                                "Tocks":all_tocks.map(tok => [
+                                    tok.ob.id,
+                                    tok.fromStar.id,
+                                    tok.toStar.id
+                                    ] )
+//function Tick(zone,trig,exit){
+//function Tock(ob,fromStar,toStar){
                             };
+                            // Obs
                             all_obs.map((ob)=>{
                                 let sob = ob.putAway();
                                 serializedSaveStuff["Obs"].push(sob);
@@ -951,6 +971,15 @@ window.onmousedown=function(e){
                                     let sstar = star.putAway();
                                     console.log(star,sstar);
                                     serializedSaveStuff["Stars"].push(sstar);
+                                });
+                                ob.zones.map( zn => {
+                                    serializedSaveStuff["Zones"].push([
+                                        ob.id,
+                                        zn.xxx,
+                                        zn.yyy,
+                                        zn.www,
+                                        zn.hhh
+                                        ]);
                                 });
                            //     console.log(ob);
                            //     console.log(stringu);
@@ -1062,6 +1091,7 @@ window.onmousedown=function(e){
                                     all_obs[jj].pregame_star.make_current();
                                 }
                                 all_obs[jj].show_trigs();
+                                zones.forEach((z)=>{zone.style.visibility='visible';});
                             }
                             menu.hidden=false;
                             eventMenu.hidden=false;
@@ -1078,6 +1108,7 @@ window.onmousedown=function(e){
                                 all_obs[jj].pregame_star=all_obs[jj].current_star;
                                 all_obs[jj].hide_trigs();
                             }
+                            zones.forEach((z)=>{zone.style.visibility='hidden';});
                             menu.hidden=true;
                             menuhl.y.baseVal.value=5;
                             eventMenu.hidden=true;
@@ -1254,6 +1285,7 @@ window.onload=function(){
 
             ////////
             // Load image from file stuff!@!!!
+            // LOAD
             ///////
     function loadImg(zippo,imgnam,wheretoputit,finalFun){
         //let blobberino = new Blob([],{type: "img/png"});
@@ -1286,171 +1318,223 @@ window.onload=function(){
             .resume();
     }
 
-    fetch('gamerfile6.zip').then((r)=>{//r => r.blob());
-    //JSZipUtils.getBinaryContent('gamefile.zip', function(err, data) {
-    //if(err) {
-    //    throw err; // or handle err
-    //}
+    fetch('game_.zip').then((r)=>{
+        if (!r.ok) {
+            console.log("there's no game");
+            Ob();
+        }else{
+            //r => r.blob());
+        //JSZipUtils.getBinaryContent('gamefile.zip', function(err, data) {
+        //if(err) {
+        //    throw err; // or handle err
+        //}
 
-        function loadImgs(zippo){
-            console.log("loading imgs");
-            console.log(zippo);
-            console.log('fls:');
-            for (var flnam in zippo.files){
-                console.log(flnam);
-                if (flnam.startsWith("images")
-                    && flnam.endsWith(".png")){
-                    console.log("yuh!",flnam);
-                    let path = flnam.split("/");
-                    let obNum = path[1];
-                    let starflnm = path[2];
-                    let starNum = starflnm.split(".")[0];
+            function loadImgs(zippo){
+                console.log("loading imgs");
+                console.log(zippo);
+                console.log('fls:');
+                for (var flnam in zippo.files){
+                    console.log(flnam);
+                    if (flnam.startsWith("images")
+                        && flnam.endsWith(".png")){
+                        console.log("yuh!",flnam);
+                        let path = flnam.split("/");
+                        let obNum = path[1];
+                        let starflnm = path[2];
+                        let starNum = starflnm.split(".")[0];
 
-                    let thisob = all_obs[obNum];
-                    console.log("should go with",thisob);
+                        let thisob = all_obs[obNum];
+                        console.log("should go with",thisob);
 
-                    if (starNum.startsWith("img")){
+                        if (starNum.startsWith("img")){
 
-                        console.log("got no stars",obNum);
+                            console.log("got no stars",obNum);
 
-                        let imrg = new Image();
-                        imrg.onload = function(){
-                            console.log("loaderd",thisob,imrg);
-                            all_obs[obNum].ctx.drawImage(imrg,0,0,thisob.width,thisob.height);
-                        }
-                        loadImg(zippo,flnam,imrg,()=>{});
-
-                    }else{
-
-                        console.log("its star ",starNum);
-                        console.log(thisob);
-                        console.log(thisob.stars);
-                        let star = thisob.stars[starNum];
-                        /// make the thumbnail!!!
-                        star.img.onload=()=>{
-                            console.log("hello");
-                            console.log(star);
-                            star.ctx.clearRect(0,0,star.width,star.height);
-                            let hr = star.ob.width/star.width;
-                            let wr = star.ob.height/star.height;
-                            // TODO: i didn't think hard enuf to make star good.
-                            let scale_ratio = hr>wr?hr:wr;
-                            let drwX=ob.width/scale_ratio;
-                            let drwY=ob.height/scale_ratio;
-                            for(let i=0;i<10;i++)
-                            star.ctx.drawImage(star.img,
-                                (star.width-drwX)/2+i/10,
-                                (star.width-drwY)/2+i/10,
-                                drwX,drwY);
-                        } ///////////////////////////
-                        loadImg(
-                            zippo,
-                            flnam,
-                            star.img,
-                            ()=>{
-                                console.log("star callbacker ",star);
-                                setTimeout(()=>{
-                                    if (star.current){
-                                        star.restore();
-                                        //star.make_current();
-                                    }
-                                },300);
+                            let imrg = new Image();
+                            imrg.onload = function(){
+                                console.log("loaderd",thisob,imrg);
+                                all_obs[obNum].ctx.drawImage(imrg,0,0,thisob.width,thisob.height);
                             }
-                        );
+                            loadImg(zippo,flnam,imrg,()=>{});
 
+                        }else{
+
+                            console.log("its star ",starNum);
+                            console.log(thisob);
+                            console.log(thisob.stars);
+                            let star = thisob.stars[starNum];
+                            /// make the thumbnail!!!
+                            star.img.onload=()=>{
+                                console.log("hello");
+                                console.log(star);
+                                star.ctx.clearRect(0,0,star.width,star.height);
+                                let hr = star.ob.width/star.width;
+                                let wr = star.ob.height/star.height;
+                                // TODO: i didn't think hard enuf to make star good.
+                                let scale_ratio = hr>wr?hr:wr;
+                                let drwX=ob.width/scale_ratio;
+                                let drwY=ob.height/scale_ratio;
+                                for(let i=0;i<10;i++)
+                                star.ctx.drawImage(star.img,
+                                    (star.width-drwX)/2+i/10,
+                                    (star.width-drwY)/2+i/10,
+                                    drwX,drwY);
+                            } ///////////////////////////
+                            loadImg(
+                                zippo,
+                                flnam,
+                                star.img,
+                                ()=>{
+                                    console.log("star callbacker ",star);
+                                    setTimeout(()=>{
+                                        if (star.current){
+                                            star.restore();
+                                            //star.make_current();
+                                        }
+                                    },300);
+                                }
+                            );
+
+                        }
                     }
                 }
             }
-        }
 
-        let crrstrrs = [];
-        //   this needs to get done after loading and setting imgs
-             //   crrstrrs.forEach((crrstrr)=>{
-             //       crrstrr.make_current();
-             //   });
-        JSZip.loadAsync(r.blob()).then(function (zippo) {
-            //// ...
-            helloo = zippo.files['Hello.txt'];
-            helloo.internalStream("text").on("data",function(data){
-                console.log("its a text!@");
-                console.log(data);
-                let stuff = JSON.parse(data);
-                // OBS
-                stuff.Obs.forEach((thing)=>{
-                    console.log("trying to make an ob");
-                    console.log(thing);
-                    newob = Ob();
-                    newob.x=thing[1];
-                    newob.y=thing[2];
-                    newob.rejig();
-                    newob.width=thing[3];
-                    newob.height=thing[4];
-                    thing[5].forEach(trg => {
-                        stuff.Trigs[trg].push(newob.id);
+            let crrstrrs = [];
+            //   this needs to get done after loading and setting imgs
+                 //   crrstrrs.forEach((crrstrr)=>{
+                 //       crrstrr.make_current();
+                 //   });
+            JSZip.loadAsync(r.blob()).then(function (zippo) {
+                //// ...
+                helloo = zippo.files['Hello.txt'];
+                helloo.internalStream("text").on("data",function(data){
+                    console.log("its a text!@");
+                    console.log(data);
+                    let stuff = JSON.parse(data);
+                    // OBS
+                    stuff.Obs.forEach((thing)=>{
+                        console.log("trying to make an ob");
+                        console.log(thing);
+                        newob = Ob(all_obs[thing[6]]);
+                        newob.x=thing[1];
+                        newob.y=thing[2];
+                        newob.rejig();
+                        newob.width=thing[3];
+                        newob.height=thing[4];
+                        thing[5].forEach(trg => {
+                            stuff.Trigs[trg].push(newob.id);
+                        });
                     });
-                });
-                // Trigs
-                stuff.Trigs.forEach(trg =>{
-                    _Trig(
-                        all_obs[trg[2]],
-                        trg[0],
-                        trg[1]
-                        );
-                });
-                // STARS
-                stuff["Stars"].forEach((strrr)=>{
-                    console.log(strrr);
-                    let obobob = all_obs[strrr[0]];
-                    obobob._new_star(strrr[1],strrr[2],strrr[3]);
-                            // the underscore means its cool
-                    //strrrr = Star(obobob,strrr[3]);
-                    //strrrr.x = strrr[1];
-                    //strrrr.y = strrr[2];
-                    //strrrr.rejig();
-                    //if (strrr[3]){
-                        //crrstrrs.push(strrrr);
-                    //}
-                });
+                    // Trigs
+                    stuff.Trigs.forEach(trg =>{
+                        _Trig(
+                            all_obs[trg[2]],
+                            trg[0],
+                            trg[1]
+                            );
+                    });
+                    // STARS
+                    stuff["Stars"].forEach((strrr)=>{
+                        console.log(strrr);
+                        let obobob = all_obs[strrr[0]];
+                        obobob._new_star(strrr[1],strrr[2],strrr[3]);
+                                // the underscore means its cool
+                        //strrrr = Star(obobob,strrr[3]);
+                        //strrrr.x = strrr[1];
+                        //strrrr.y = strrr[2];
+                        //strrrr.rejig();
+                        //if (strrr[3]){
+                            //crrstrrs.push(strrrr);
+                        //}
+                    });
+                    stuff.Zones.forEach(zn => {
+                        _SquareZone(
+                            all_obs[zn[0]],
+                            zn[1],
+                            zn[2],
+                            zn[3],
+                            zn[4]
+                            );
+                    });
+                    stuff.Tocks.forEach(toki => {
+                        let dis_ob = all_obs[toki[0]];
+                        Tock(
+                            dis_ob,
+                            dis_ob.stars[toki[1]],
+                            dis_ob.stars[toki[2]]
+                            );
+                    });
+                    stuff.Ticks.forEach(tiki => {
+                        /// OHHHHHHHHHHHHHHH
+                        // duhhhhhhhhhhh my code is so intuitive
+                        // ONLY CREATE Ticks USING getTick!!!!!!!!!!!!
+                        tik = getTick(
+                                zones[tiki[0]],
+                                trigs[tiki[1]],
+                                tiki[2],
+                                );
+                        tiki[3].forEach( tokindex => {
+                            console.log(all_tocks);
+                            console.log(tokindex)
+                            console.log("Hey listen",all_tocks[tokindex]);
+                            tik.add_tock(all_tocks[tokindex]);
+                        } );
+                    });
+                          /// I know u already memorized liek all this and wrote a spek or something but just in case you want to know this is what the data is shaped like...:
+            //{"Obs":[["0",75,96,300,500,["0","1"]],["1",162,43,169,126,[]]],
+                  //  "Stars":[["0",459,348,true],["0",459,235,false],["0",464,123,false]],
+                  //      "Zones":[["1",273,187,130,61]],
+                  //      "Trigs":[[219,232],[253,232]],
+                  //      "Ticks":[["0","1",false,[]],["0","0",false,[]],["0","0",true,[]],["0","1",true,[]],["0","1",false,[4]],["0","0",false,[5]],["0","0",true,[6]],["0","1",true,[7]]],
+                  //      "Tocks":[["0","0","1"],["0","1","2"],["0","2","1"],["0","1","0"],["0","0","1"],["0","1","2"],["0","2","1"],["0","1","0"]]}
 
-            })
-                .on("error", function (e) {console.log("err",e);})
-                .on("end", function () {
-                    console.log("finish'd12342343");
-                    loadImgs(zippo);
+                          //// all those intz n bools with no context should tell u all u need to know eh?
+
                 })
-                .resume()
-            ;
-            
+                    .on("error", function (e) {console.log("err",e);})
+                    .on("end", function () {
+                        console.log("finish'd12342343");
+                        loadImgs(zippo);
+                    })
+                    .resume()
+                ;
+                
 
-            console.log("it's not a hippo");
-            console.log(zippo);// it's not a hippo
-            console.log(zippo['files']['images/0/0.png']);
-            //bweebop = zippo.files['images/0/0.png'];
-            window.imgee = new Image();
-            imgee.onload = function(){
-                //testob.width = 300;
-                //testob.height = 500;
-                all_obs[1].ctx.drawImage(window.imgee,0,0);
-            }
-          //  bweebop.internalStream("uint8array")
-          //                 //string, binarystring, uint8array, arraybuffer, nodebuffer
-          //      .on("data", function (data) {
-          //          console.log(data);
-          //          blobberino = new Blob([data], { type: "image/png" });
-          //          console.log(blobberino);
-          //          //testob.width=500;
-          //          //testob.height=500;
-          //          window.imgee.src=URL.createObjectURL(blobberino);
-          //          console.log(URL.createObjectURL(blobberino));
-          //          console.log(window.imgee.src);
-          //          document.body.appendChild(window.imgee);
-          //      })
-          //      .on("error", function (e) {console.log("err",e);})
-          //      .on("end", function () {console.log("finish'd12342343");})
-          //      .resume();
-        });
+                console.log("it's not a hippo");
+                console.log(zippo);// it's not a hippo
+                console.log(zippo['files']['images/0/0.png']);
+                //bweebop = zippo.files['images/0/0.png'];
+
+                window.imgee = new Image();
+                imgee.onload = function(){
+                    //testob.width = 300;
+                    //testob.height = 500;
+                    all_obs[1].ctx.drawImage(window.imgee,0,0);
+                }
+              //  bweebop.internalStream("uint8array")
+              //                 //string, binarystring, uint8array, arraybuffer, nodebuffer
+              //      .on("data", function (data) {
+              //          console.log(data);
+              //          blobberino = new Blob([data], { type: "image/png" });
+              //          console.log(blobberino);
+              //          //testob.width=500;
+              //          //testob.height=500;
+              //          window.imgee.src=URL.createObjectURL(blobberino);
+              //          console.log(URL.createObjectURL(blobberino));
+              //          console.log(window.imgee.src);
+              //          document.body.appendChild(window.imgee);
+              //      })
+              //      .on("error", function (e) {console.log("err",e);})
+              //      .on("end", function () {console.log("finish'd12342343");})
+              //      .resume();
+            });
+        }// end of if success block
+
+    // this here should be the end of the whole load thingum.
     });
-    loop();
+
+    //loop();
 }
 /////////////
 // end of init function
@@ -1532,6 +1616,7 @@ function m(e){
         y = e.pageY;
         dx = x-lastx;
         dy = y-lasty;
+
         if(pencil_down){
             input_fun[input_mode][1](e);
         }else{
@@ -1571,4 +1656,4 @@ function m(e){
     </svg>
 </body>
 </html>
-<!--1200 lines of code! Hawt!>
+<!--1500 lines of code! Hawt! Unf! Awoogah!>
