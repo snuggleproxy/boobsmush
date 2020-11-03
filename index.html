@@ -419,6 +419,7 @@ function _SquareZone(ob,tx,ty,tw,th){
         this.rejig();
         mcgriddle.add(this.xxx,this.yyy,this.xxx+this.www,this.yyy+this.hhh,this);
     }
+    mcgriddle.add(zone.xxx,zone.yyy,zone.xxx+zone.www,zone.yyy+zone.hhh,zone);
 }
 function Zone(ob){
     SquareZone(ob);
@@ -945,6 +946,7 @@ window.onmousedown=function(e){
                             ///  serialize all the thingz yo
                             //
                             let serializedSaveStuff = {
+                                "selected_ob":selected_ob,
                                 "Obs":[],
                                 "Stars":[],
                                 "Zones":[],
@@ -1108,7 +1110,7 @@ window.onmousedown=function(e){
                                 all_obs[jj].pregame_star=all_obs[jj].current_star;
                                 all_obs[jj].hide_trigs();
                             }
-                            zones.forEach((z)=>{zone.style.visibility='hidden';});
+                            zones.forEach((z)=>{z.style.visibility='hidden';});
                             menu.hidden=true;
                             menuhl.y.baseVal.value=5;
                             eventMenu.hidden=true;
@@ -1329,6 +1331,8 @@ window.onload=function(){
         //    throw err; // or handle err
         //}
 
+            start_in_play_mode = true;
+
             function loadImgs(zippo){
                 console.log("loading imgs");
                 console.log(zippo);
@@ -1388,10 +1392,10 @@ window.onload=function(){
                                     console.log("star callbacker ",star);
                                     setTimeout(()=>{
                                         if (star.current){
-                                            star.restore();
-                                            //star.make_current();
+                                            //star.restore();
+                                            star.make_current();
                                         }
-                                    },300);
+                                    },500);
                                 }
                             );
 
@@ -1481,6 +1485,11 @@ window.onload=function(){
                             tik.add_tock(all_tocks[tokindex]);
                         } );
                     });
+
+
+                    all_obs.forEach((obobo)=>{ obobo.hide_stars();});
+                    all_obs[stuff.selected_ob].select();
+
                           /// I know u already memorized liek all this and wrote a spek or something but just in case you want to know this is what the data is shaped like...:
             //{"Obs":[["0",75,96,300,500,["0","1"]],["1",162,43,169,126,[]]],
                   //  "Stars":[["0",459,348,true],["0",459,235,false],["0",464,123,false]],
@@ -1496,6 +1505,28 @@ window.onload=function(){
                     .on("end", function () {
                         console.log("finish'd12342343");
                         loadImgs(zippo);
+
+                        //// play mode
+                        /////// stuff required to be in play mode
+                        if (start_in_play_mode){
+                            input_mode = "play";
+                            console.log("storing for play");
+                            selected_ob.hide_stars();
+                            for (let jj=0; jj<all_obs.length; jj++){
+                                all_obs[jj].liner.style.visibility='hidden';
+                                all_obs[jj].pregame_border=all_obs[jj].style.border;
+                                all_obs[jj].pregame_x=all_obs[jj].x;
+                                all_obs[jj].pregame_y=all_obs[jj].y;
+                                all_obs[jj].style.border='hidden';
+                                all_obs[jj].pregame_star=all_obs[jj].current_star;
+                                all_obs[jj].hide_trigs();
+                            }
+                            zones.forEach((z)=>{z.style.visibility='hidden';});
+                            menu.hidden=true;
+                            menuhl.y.baseVal.value=5;
+                            eventMenu.hidden=true;
+                        }
+                        /////// stuff required to be in play mode
                     })
                     .resume()
                 ;
