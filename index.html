@@ -1165,6 +1165,9 @@ window.onmouseup=function(e){
 // init function
 ////////////////
 window.onload=function(){
+
+
+
     console.warn("Shut up firefox! It doesn't contain any text at all!")
 
     window.all_obs = [];
@@ -1267,6 +1270,23 @@ window.onload=function(){
     liner.y2.baseVal.value= 2;
     //foo = liner.cloneNode();
     //svglayer.appendChild(foo);
+
+
+
+
+    /// fecking mobile dicks fuck 
+
+  window.addEventListener('touchmove', function(e) {
+        // grab the location of touch
+    var touchLocation = e.targetTouches[0];
+
+           // assign box new coordinates based on the touch.
+          x = touchLocation.pageX;
+          y = touchLocation.pageY;
+      // thank u to this gaf:
+      // https://medium.com/@deepakkadarivel/drag-and-drop-dnd-for-mobile-browsers-fc9bcd1ad3c5
+  })
+
 
 
     // lets get our load on!!!
