@@ -1276,7 +1276,16 @@ window.onload=function(){
 
     /// fecking mobile dicks fuck 
 
-  document.body.addEventListener('touchmove', function(e) {
+  mobiletouchdiv = document.createElement("div");
+  mobiletouchdiv.position = 'absolute';
+  mobiletouchdiv.style.left = 0;
+  mobiletouchdiv.style.top = 0;
+  mobiletouchdiv.style.height = 10000;
+  mobiletouchdiv.style.width = 10000;
+
+    document.body.appendChild(mobiletouchdiv);
+    mobiletouchdiv.style.zIndex = 100;
+  mobiletouchdiv.addEventListener('touchmove', function(e) {
         // grab the location of touch
     var touchLocation = e.targetTouches[0];
 
@@ -1285,7 +1294,7 @@ window.onload=function(){
           y = touchLocation.pageY;
       // thank u to this gaf:
       // https://medium.com/@deepakkadarivel/drag-and-drop-dnd-for-mobile-browsers-fc9bcd1ad3c5
-  })
+  });
 
 
 
