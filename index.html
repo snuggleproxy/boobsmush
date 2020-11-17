@@ -1286,6 +1286,14 @@ window.onload=function(){
 
     document.body.appendChild(mobiletouchdiv);
     mobiletouchdiv.style.zIndex = 100;
+  mobiletouchdiv.addEventListener('touchstart',function(e){
+    e.preventDefault();
+    pencil_down = true;
+  });
+  mobiletouchdiv.addEventListener('touchend',function(e){
+    e.preventDefault();
+    pencil_down = false;
+  });
   mobiletouchdiv.addEventListener('touchmove', function(e) {
           e.preventDefault();
         // grab the location of touch
